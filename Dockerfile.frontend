@@ -1,0 +1,37 @@
+# Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build args
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
+# Build the application
+RUN npm run build
+
+# Serve stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install serve package globally
+RUN npm install -g serve
+
+# Copy built assets from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Expose the port specified in docker-compose
+EXPOSE 3300
+
+# Start server on port 3300 single page application mode
+CMD ["serve", "-s", "dist", "-l", "3300"]

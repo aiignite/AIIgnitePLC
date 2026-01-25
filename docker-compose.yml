@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: aiignite-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aiignite_plc
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # 初始化脚本自动运行
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aiignite-network
+
+  # 后端 API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aiignite-backend
+    restart: unless-stopped
+    ports:
+      - "3310:3310"
+    environment:
+      PORT: 3310
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      # 数据库连接（Docker 内部使用服务名）
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: aiignite_plc
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      # CORS（允许本地前端访问）
+      CORS_ORIGIN: http://localhost:3300
+      # 日志级别
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3310/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - aiignite-network
+
+  # 前端（可选，如需 Docker 化前端）
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:3310/api/v1
+    container_name: aiignite-frontend
+    restart: unless-stopped
+    ports:
+      - "3300:3300"
+    environment:
+      VITE_API_BASE_URL: http://localhost:3310/api/v1
+    depends_on:
+      - backend
+    networks:
+      - aiignite-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  aiignite-network:
+    driver: bridge

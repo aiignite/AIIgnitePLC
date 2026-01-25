@@ -75,7 +75,7 @@ export const OnlineDiagnostics: React.FC = () => {
                         <td className="p-2 text-center text-slate-500">1</td>
                         <td className="p-2 font-mono">10:42:15.123</td>
                         <td className="p-2 font-mono">16# 02:4000</td>
-                        <td className="p-2 text-slate-700">模式转换: STOP -> RUN</td>
+                        <td className="p-2 text-slate-700">模式转换: STOP -&gt; RUN</td>
                         <td className="p-2 text-green-600 font-medium">Info</td>
                     </tr>
                     <tr className="hover:bg-blue-50 cursor-pointer">
@@ -103,7 +103,7 @@ export const OnlineDiagnostics: React.FC = () => {
                         <td className="p-2 text-center text-slate-500">5</td>
                         <td className="p-2 font-mono">08:14:55.120</td>
                         <td className="p-2 font-mono">16# 02:4000</td>
-                        <td className="p-2 text-slate-700">模式转换: RUN -> STOP</td>
+                        <td className="p-2 text-slate-700">模式转换: RUN -&gt; STOP</td>
                         <td className="p-2 text-green-600 font-medium">Info</td>
                     </tr>
                 </tbody>
