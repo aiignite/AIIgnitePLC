@@ -1,0 +1,71 @@
+export interface ProjectNode {
+  id: string;
+  name: string;
+  type: 'folder' | 'device' | 'block' | 'tag' | 'root' | 'settings' | 'config';
+  color?: string; // For icon color
+  children?: ProjectNode[];
+  isOpen?: boolean;
+}
+
+export type ElementType = 'contactNO' | 'contactNC' | 'coil' | 'box_timer' | 'empty';
+
+export interface LadderElement {
+  id: string;
+  type: ElementType;
+  tag: string;
+  address: string;
+  comment?: string;
+  // Specific properties for boxes (like Timers)
+  parameters?: {
+    name: string;
+    value: string;
+  }[];
+}
+
+export interface LadderRung {
+  id: string;
+  elements: LadderElement[];
+  hasBranch?: boolean; // Simplified branching for demo
+  branchElement?: LadderElement; // The element on the branch
+}
+
+export interface Network {
+  id: string;
+  title: string;
+  description: string;
+  rungs: LadderRung[];
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'system';
+  content: string;
+  actions?: string[];
+}
+
+export interface TagDefinition {
+  id: string;
+  name: string;
+  dataType: string;
+  address: string;
+  comment: string;
+}
+
+// Global View State
+export type ViewMode = 'LADDER' | 'TAGS';
+
+export interface Instruction {
+  id: string;
+  name: string;
+  category: 'BitLogic' | 'Timer' | 'Counter' | 'Math';
+  type: ElementType;
+  description: string;
+}
+
+// For Import/Export
+export interface ProjectData {
+  version: string;
+  projectNodes: ProjectNode[];
+  networks: Network[];
+  tags: TagDefinition[];
+}
