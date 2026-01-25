@@ -1,3 +1,4 @@
+
 export interface ProjectNode {
   id: string;
   name: string;
@@ -52,7 +53,7 @@ export interface TagDefinition {
 }
 
 // Global View State
-export type ViewMode = 'LADDER' | 'TAGS';
+export type ViewMode = 'LADDER' | 'TAGS' | 'CONFIG' | 'DIAGNOSTICS';
 
 export interface Instruction {
   id: string;

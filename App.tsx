@@ -4,6 +4,8 @@ import { LadderEditor } from './components/LadderEditor';
 import { Inspector } from './components/Inspector';
 import { InstructionPanel } from './components/InstructionPanel';
 import { TagEditor } from './components/TagEditor';
+import { DeviceConfiguration } from './components/DeviceConfiguration';
+import { OnlineDiagnostics } from './components/OnlineDiagnostics';
 import { INITIAL_PROJECT_TREE, INITIAL_NETWORKS, INITIAL_CHAT, MOCK_TAGS } from './services/mockData';
 import { ProjectNode, LadderElement, ChatMessage, ViewMode, TagDefinition, Network, ElementType, ProjectData } from './types';
 
@@ -83,6 +85,8 @@ const App: React.FC = () => {
             type: 'device',
             isOpen: true,
             children: [
+               { id: 'dev_conf', name: '设备组态', type: 'config', color: 'text-yellow-600' },
+               { id: 'online_diag', name: '在线和诊断', type: 'settings', color: 'text-green-600' },
               {
                 id: 'blocks',
                 name: '程序块',
@@ -189,17 +193,24 @@ const App: React.FC = () => {
     setProjectNodes(toggleNode(projectNodes));
   };
 
-  const handleSelectNode = (id: string) => {
-    setSelectedProjectId(id);
-  };
-
   const handleOpenNode = (id: string) => {
     if (id === 'tag_table') {
       setViewMode('TAGS');
+    } else if (id === 'dev_conf') {
+      setViewMode('CONFIG');
+    } else if (id === 'online_diag') {
+      setViewMode('DIAGNOSTICS');
     } else if (id === 'ob1' || id.startsWith('fc')) {
       setViewMode('LADDER');
     }
   };
+
+  const handleSelectNode = (id: string) => {
+    setSelectedProjectId(id);
+    // Single click now also navigates for better UX
+    handleOpenNode(id);
+  };
+
 
   // --- Logic: Tag Editor ---
   const handleUpdateTag = (id: string, field: keyof TagDefinition, value: string) => {
@@ -351,7 +362,7 @@ const App: React.FC = () => {
             <span className="material-symbols-outlined">dataset</span>
           </div>
           <div className="flex flex-col">
-            <h2 className="text-siemens-dark text-base font-bold leading-tight">Siemens-Style Web Editor</h2>
+            <h2 className="text-siemens-dark text-base font-bold leading-tight">AI Ignite PLC</h2>
             <div className="flex items-center gap-1">
               <div className="size-2 rounded-full bg-green-500 animate-pulse"></div>
               <span className="text-xs text-slate-500 font-medium">Online</span>
@@ -421,15 +432,28 @@ const App: React.FC = () => {
            {/* Center Toolbar */}
            <div className="h-10 bg-white border-b border-slate-300 flex items-center px-4 gap-4 overflow-x-auto shrink-0 shadow-sm z-10">
              <div className="flex items-center gap-2 text-slate-500 border-r border-slate-200 pr-4">
-               {viewMode === 'LADDER' ? (
+               {viewMode === 'LADDER' && (
                    <>
                      <span className="material-symbols-outlined text-[20px] text-blue-600">deployed_code</span>
                      <span className="font-bold text-slate-800 text-sm">Main [OB1]</span>
                    </>
-               ) : (
+               )}
+               {viewMode === 'TAGS' && (
                    <>
                      <span className="material-symbols-outlined text-[20px] text-pink-500">sell</span>
                      <span className="font-bold text-slate-800 text-sm">默认变量表</span>
+                   </>
+               )}
+               {viewMode === 'CONFIG' && (
+                   <>
+                     <span className="material-symbols-outlined text-[20px] text-yellow-600">developer_board</span>
+                     <span className="font-bold text-slate-800 text-sm">设备组态 (Device config)</span>
+                   </>
+               )}
+               {viewMode === 'DIAGNOSTICS' && (
+                   <>
+                     <span className="material-symbols-outlined text-[20px] text-green-600">monitor_heart</span>
+                     <span className="font-bold text-slate-800 text-sm">在线和诊断 (Online & Diagnostics)</span>
                    </>
                )}
              </div>
@@ -467,14 +491,15 @@ const App: React.FC = () => {
 
            {/* Upper: Editor Area */}
            <div className="flex-1 overflow-hidden flex flex-col relative">
-              {viewMode === 'LADDER' ? (
+              {viewMode === 'LADDER' && (
                 <LadderEditor 
                     networks={networks} 
                     selectedElementId={selectedElement?.id || null}
                     onElementSelect={setSelectedElement}
                     onDeleteElement={handleDeleteElement}
                 />
-              ) : (
+              )}
+              {viewMode === 'TAGS' && (
                 <TagEditor 
                     tags={tags} 
                     onUpdateTag={handleUpdateTag}
@@ -482,6 +507,8 @@ const App: React.FC = () => {
                     onDeleteTag={handleDeleteTag}
                 />
               )}
+              {viewMode === 'CONFIG' && <DeviceConfiguration />}
+              {viewMode === 'DIAGNOSTICS' && <OnlineDiagnostics />}
            </div>
 
            {/* Resizer Handle (Bottom) - Only show in Ladder Mode or if Inspector is needed */}
