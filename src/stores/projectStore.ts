@@ -26,7 +26,7 @@ interface ProjectState {
   setError: (error: string | null) => void;
 }
 
-const API_BASE = 'http://localhost:3310/api/v1';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3310/api/v1';
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
   // 初始状态

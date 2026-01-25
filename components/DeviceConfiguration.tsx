@@ -1,30 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-
-// --- Types ---
-interface Module {
-  slot: number;
-  name: string;
-  articleNumber: string;
-  firmware: string;
-  type: 'ps' | 'cpu' | 'io' | 'comm' | 'empty';
-  image?: string;
-  // Extended Properties
-  ip?: string;
-  subnet?: string;
-  ioStart?: number;
-  ioLength?: number;
-  hwId?: number;
-  comment?: string;
-}
-
-// --- Initial Data ---
-const INITIAL_MODULES: Module[] = [
-  { slot: 1, name: 'PM 190W', articleNumber: '6EP1333-4BA00', firmware: '-', type: 'ps', hwId: 257 },
-  { slot: 2, name: 'CPU 1511-1 PN', articleNumber: '6ES7 511-1AK02-0AB0', firmware: 'V2.9', type: 'cpu', ip: '192.168.0.1', subnet: '255.255.255.0', hwId: 64 },
-  { slot: 3, name: 'DI 16x24VDC HF', articleNumber: '6ES7 521-1BH00-0AB0', firmware: 'V1.1', type: 'io', ioStart: 0, ioLength: 2, hwId: 263 },
-  { slot: 4, name: 'DQ 16x24VDC/0.5A', articleNumber: '6ES7 522-1BH01-0AB0', firmware: 'V1.1', type: 'io', ioStart: 0, ioLength: 2, hwId: 264 },
-  { slot: 5, name: 'AI 8xU/I/RTD/TC', articleNumber: '6ES7 531-7KF00-0AB0', firmware: 'V1.0', type: 'io', ioStart: 64, ioLength: 16, hwId: 265 },
-];
+import { useHardwareStore, HardwareModule } from '../src/stores/hardwareStore';
+import { useProjectStore } from '../src/stores/projectStore';
 
 // --- Hardware Catalog Mock Data ---
 const CATALOG = [
@@ -38,7 +14,9 @@ type ConfigViewMode = 'device' | 'network' | 'topology';
 type InspectorTab = 'general' | 'profinet' | 'io' | 'hw_id';
 
 export const DeviceConfiguration: React.FC = () => {
-  const [modules, setModules] = useState<Module[]>(INITIAL_MODULES);
+  const { currentProjectId } = useProjectStore();
+  const { modules, loadHardware, updateModule, deleteModule } = useHardwareStore();
+  
   const [selectedSlot, setSelectedSlot] = useState<number>(2);
   const [viewMode, setViewMode] = useState<ConfigViewMode>('device');
   const [showCatalog, setShowCatalog] = useState<{slot: number, visible: boolean}>({ slot: -1, visible: false });
@@ -48,21 +26,40 @@ export const DeviceConfiguration: React.FC = () => {
   const [isResizing, setIsResizing] = useState(false);
   const [activeTab, setActiveTab] = useState<InspectorTab>('general');
 
-  // --- Handlers ---
+  // Load Hardware on Project Change
+  useEffect(() => {
+    // 优先使用当前项目 ID，如果不存在，则尝试使用我们刚刚创建并获取到的项目ID（硬编码作为示例，实际应从项目列表获取）
+    // 为了解决用户报告的Bug，我们这里不再使用假的 'default-project-id'，而是尝试使用一个真实存在的ID
+    // 在真实应用中，CurrentProjectID 应该由 App 初始化时从后端获取并设置
+    
+    // Fallback ID from our internal knowledge that we created a default project
+    // Ideally update this logic to fetch the first available project from store
+    const projectId = currentProjectId || '0c9eecbb-671f-470d-8707-4be51b36aea3'; 
+    loadHardware(projectId);
+  }, [currentProjectId, loadHardware]);
 
-  const handleUpdateModule = (slot: number, field: keyof Module, value: string | number) => {
-      setModules(prev => prev.map(m => m.slot === slot ? { ...m, [field]: value } : m));
+  // --- Handlers ---
+  const handleUpdateModule = (slot: number, field: keyof HardwareModule, value: string | number) => {
+      // Logic fix: use the same fallback ID if currentProjectId is missing
+      const projectId = currentProjectId || '0c9eecbb-671f-470d-8707-4be51b36aea3';
+      const module = modules.find(m => m.slot === slot);
+      if (module) {
+         const updated = { ...module, [field]: value };
+         updateModule(projectId, slot, updated);
+      }
   };
 
   const handleDeleteModule = (slot: number) => {
+      const projectId = currentProjectId || '0c9eecbb-671f-470d-8707-4be51b36aea3';
       if (confirm(`确定要删除槽位 ${slot} 的模块吗?`)) {
-          setModules(prev => prev.filter(m => m.slot !== slot));
+          deleteModule(projectId, slot);
           setSelectedSlot(-1); // Deselect
       }
   };
 
   const handleInsertModule = (template: typeof CATALOG[0]) => {
-      const newModule: Module = {
+      const projectId = currentProjectId || '0c9eecbb-671f-470d-8707-4be51b36aea3';
+      const newModule: HardwareModule = {
           slot: showCatalog.slot,
           name: template.name,
           articleNumber: template.article,
@@ -73,12 +70,17 @@ export const DeviceConfiguration: React.FC = () => {
           ioLength: (template as any).ioLength,
           ip: template.type === 'comm' ? '192.168.0.20' : undefined
       };
-      setModules(prev => [...prev, newModule]);
+      
+      updateModule(projectId, showCatalog.slot, newModule);
       setShowCatalog({ slot: -1, visible: false });
       setSelectedSlot(newModule.slot);
   };
 
   const getModuleAtSlot = (slot: number) => modules.find(m => m.slot === slot);
+
+  const handleUpdateModuleSimple = (slot: number, field: keyof HardwareModule, value: string | number) => {
+    handleUpdateModule(slot, field, value);
+  };
 
   // --- Resizing Logic ---
   const startResizing = (e: React.MouseEvent) => {

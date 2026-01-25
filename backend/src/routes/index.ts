@@ -8,6 +8,7 @@ import { projectRoutes } from './projects';
 import { nodeRoutes } from './nodes';
 import { tagRoutes } from './tags';
 import { blockRoutes } from './blocks';
+import { hardwareRoutes } from './hardware';
 import { websocketRoutes } from './websocket';
 
 export function registerRoutes(fastify: FastifyInstance) {
@@ -29,6 +30,9 @@ export function registerRoutes(fastify: FastifyInstance) {
 
       // 程序块管理
       fastify.register(blockRoutes);
+
+      // 硬件配置管理
+      fastify.register(hardwareRoutes);
 
       // WebSocket 路由
       websocketRoutes(fastify);
