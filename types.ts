@@ -2,7 +2,7 @@
 export interface ProjectNode {
   id: string;
   name: string;
-  type: 'folder' | 'device' | 'block' | 'tag' | 'root' | 'settings' | 'config';
+  type: 'folder' | 'device' | 'block' | 'tag' | 'root' | 'settings' | 'config' | 'graph_block';
   color?: string; // For icon color
   children?: ProjectNode[];
   isOpen?: boolean;
@@ -53,7 +53,7 @@ export interface TagDefinition {
 }
 
 // Global View State
-export type ViewMode = 'LADDER' | 'TAGS' | 'CONFIG' | 'DIAGNOSTICS';
+export type ViewMode = 'LADDER' | 'TAGS' | 'CONFIG' | 'DIAGNOSTICS' | 'GRAPHIC';
 
 export interface Instruction {
   id: string;

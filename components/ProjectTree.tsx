@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ProjectNode } from '../types';
 
@@ -27,6 +28,7 @@ const ProjectTreeNode: React.FC<{
       case 'settings': return 'memory';
       case 'block': return 'deployed_code';
       case 'tag': return 'sell';
+      case 'graph_block': return 'schema';
       default: return 'folder';
     }
   };
@@ -60,7 +62,7 @@ const ProjectTreeNode: React.FC<{
             {node.isOpen ? 'expand_more' : 'chevron_right'}
           </span>
         )}
-        {!node.children && <span className="w-4" />} {/* Spacer for leaf nodes */}
+        {!node.children && <span className="w-4" />}
         
         <span className={`material-symbols-outlined text-[18px] ${node.color || 'text-slate-400'}`}>
           {getIcon(node.type, node.isOpen)}

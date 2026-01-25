@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ProjectTree } from './components/ProjectTree';
 import { LadderEditor } from './components/LadderEditor';
@@ -6,13 +7,14 @@ import { InstructionPanel } from './components/InstructionPanel';
 import { TagEditor } from './components/TagEditor';
 import { DeviceConfiguration } from './components/DeviceConfiguration';
 import { OnlineDiagnostics } from './components/OnlineDiagnostics';
+import { GraphicEditor } from './components/GraphicEditor';
 import { INITIAL_PROJECT_TREE, INITIAL_NETWORKS, INITIAL_CHAT, MOCK_TAGS } from './services/mockData';
 import { ProjectNode, LadderElement, ChatMessage, ViewMode, TagDefinition, Network, ElementType, ProjectData } from './types';
 
 const App: React.FC = () => {
   // --- Layout State ---
   const [leftWidth, setLeftWidth] = useState(260);
-  const [rightWidth, setRightWidth] = useState(280);
+  const [rightWidth, setRightWidth] = useState(320); // Widened for AI panel
   const [inspectorHeight, setInspectorHeight] = useState(250);
   const [isResizing, setIsResizing] = useState<'left' | 'right' | 'bottom' | null>(null);
 
@@ -48,7 +50,7 @@ const App: React.FC = () => {
       if (newWidth > 150 && newWidth < 600) setLeftWidth(newWidth);
     } else if (isResizing === 'right') {
       const newWidth = window.innerWidth - e.clientX;
-      if (newWidth > 200 && newWidth < 500) setRightWidth(newWidth);
+      if (newWidth > 200 && newWidth < 600) setRightWidth(newWidth);
     } else if (isResizing === 'bottom') {
       const newHeight = window.innerHeight - e.clientY;
       if (newHeight > 100 && newHeight < 600) setInspectorHeight(newHeight);
@@ -200,6 +202,8 @@ const App: React.FC = () => {
       setViewMode('CONFIG');
     } else if (id === 'online_diag') {
       setViewMode('DIAGNOSTICS');
+    } else if (id === 'graph1') {
+      setViewMode('GRAPHIC');
     } else if (id === 'ob1' || id.startsWith('fc')) {
       setViewMode('LADDER');
     }
@@ -338,7 +342,7 @@ const App: React.FC = () => {
       const newSystemMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'system',
-        content: `模拟分析: "${text}"。`
+        content: `模拟分析: "${text}"。我已经根据你的需求准备好了逻辑优化建议。`
       };
       setChatMessages(prev => [...prev, newSystemMsg]);
     }, 1000);
@@ -361,11 +365,11 @@ const App: React.FC = () => {
           <div className="flex items-center justify-center size-8 bg-primary rounded text-white shadow-sm">
             <span className="material-symbols-outlined">dataset</span>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col text-sm">
             <h2 className="text-siemens-dark text-base font-bold leading-tight">AI Ignite PLC</h2>
             <div className="flex items-center gap-1">
               <div className="size-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs text-slate-500 font-medium">Online</span>
+              <span className="text-[10px] text-slate-500 font-medium tracking-tight">192.168.0.1: Online</span>
             </div>
           </div>
           <div className="w-px h-8 bg-slate-200 mx-2"></div>
@@ -400,16 +404,16 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* --- Main Workspace (Horizontal Flex) --- */}
+      {/* --- Main Workspace --- */}
       <div className="flex flex-1 overflow-hidden relative">
         
         {/* 1. Left Sidebar */}
         <aside 
-          className="bg-white border-r border-slate-300 flex flex-col shrink-0 z-10"
+          className="bg-white border-r border-slate-300 flex flex-col shrink-0 z-10 shadow-sm"
           style={{ width: leftWidth }}
         >
           <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-            <h3 className="font-bold text-slate-800 text-sm">项目树 (Project Tree)</h3>
+            <h3 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Project Tree</h3>
           </div>
           <ProjectTree 
             nodes={projectNodes} 
@@ -420,134 +424,60 @@ const App: React.FC = () => {
           />
         </aside>
 
-        {/* Resizer Handle (Left) */}
-        <div 
-            className="w-1 bg-slate-200 hover:bg-primary cursor-col-resize z-20 hover:w-1.5 transition-all"
-            onMouseDown={startResizing('left')}
-        ></div>
+        <div className="w-1 bg-slate-200 hover:bg-primary cursor-col-resize z-20 hover:w-1.5 transition-all" onMouseDown={startResizing('left')}></div>
 
-        {/* 2. Center Content (Vertical Flex) */}
-        <div className="flex flex-col flex-1 min-w-0 bg-bg-light relative h-full">
+        {/* 2. Center Content */}
+        <div className="flex flex-col flex-1 min-w-0 bg-slate-50 relative h-full">
            
-           {/* Center Toolbar */}
-           <div className="h-10 bg-white border-b border-slate-300 flex items-center px-4 gap-4 overflow-x-auto shrink-0 shadow-sm z-10">
+           {/* Center Header */}
+           <div className="h-10 bg-white border-b border-slate-300 flex items-center px-4 gap-4 shrink-0 z-10">
              <div className="flex items-center gap-2 text-slate-500 border-r border-slate-200 pr-4">
-               {viewMode === 'LADDER' && (
-                   <>
-                     <span className="material-symbols-outlined text-[20px] text-blue-600">deployed_code</span>
-                     <span className="font-bold text-slate-800 text-sm">Main [OB1]</span>
-                   </>
-               )}
-               {viewMode === 'TAGS' && (
-                   <>
-                     <span className="material-symbols-outlined text-[20px] text-pink-500">sell</span>
-                     <span className="font-bold text-slate-800 text-sm">默认变量表</span>
-                   </>
-               )}
-               {viewMode === 'CONFIG' && (
-                   <>
-                     <span className="material-symbols-outlined text-[20px] text-yellow-600">developer_board</span>
-                     <span className="font-bold text-slate-800 text-sm">设备组态 (Device config)</span>
-                   </>
-               )}
-               {viewMode === 'DIAGNOSTICS' && (
-                   <>
-                     <span className="material-symbols-outlined text-[20px] text-green-600">monitor_heart</span>
-                     <span className="font-bold text-slate-800 text-sm">在线和诊断 (Online & Diagnostics)</span>
-                   </>
-               )}
+               {viewMode === 'LADDER' && <><span className="material-symbols-outlined text-[20px] text-blue-600">deployed_code</span><span className="font-bold text-slate-800 text-sm">Main [OB1]</span></>}
+               {viewMode === 'TAGS' && <><span className="material-symbols-outlined text-[20px] text-pink-500">sell</span><span className="font-bold text-slate-800 text-sm">默认变量表</span></>}
+               {viewMode === 'CONFIG' && <><span className="material-symbols-outlined text-[20px] text-yellow-600">developer_board</span><span className="font-bold text-slate-800 text-sm">设备组态</span></>}
+               {viewMode === 'DIAGNOSTICS' && <><span className="material-symbols-outlined text-[20px] text-green-600">monitor_heart</span><span className="font-bold text-slate-800 text-sm">在线和诊断</span></>}
+               {viewMode === 'GRAPHIC' && <><span className="material-symbols-outlined text-[20px] text-blue-500">schema</span><span className="font-bold text-slate-800 text-sm">Motor_Logic [Graph]</span></>}
              </div>
              
              {viewMode === 'LADDER' && (
                 <div className="flex items-center gap-1">
                   {[
-                    {icon: 'add_box', title: '插入程序段'},
-                    {icon: 'delete', title: '删除程序段'},
                     {icon: 'check_box_outline_blank', title: '常开触点', action: () => handleAddInstruction('contactNO')},
                     {icon: 'disabled_by_default', title: '常闭触点', action: () => handleAddInstruction('contactNC')},
                     {icon: 'code', title: '赋值线圈', action: () => handleAddInstruction('coil')},
-                    {icon: 'crop_square', title: '空指令框', action: () => handleAddInstruction('box_timer')},
                   ].map((tool, idx) => (
-                    <React.Fragment key={tool.title}>
-                      {idx === 2 && <div className="w-px h-5 bg-slate-300 mx-1"></div>}
-                      <button 
-                        className="p-1 hover:bg-slate-100 rounded text-slate-600 hover:text-primary transition-colors" 
-                        title={tool.title}
-                        onClick={(tool as any).action}
-                      >
+                    <button key={tool.title} className="p-1 hover:bg-slate-100 rounded text-slate-600 hover:text-primary transition-colors" title={tool.title} onClick={(tool as any).action}>
                         <span className="material-symbols-outlined text-[20px]">{tool.icon}</span>
-                      </button>
-                    </React.Fragment>
+                    </button>
                   ))}
                 </div>
              )}
-             
-             {viewMode === 'TAGS' && (
-                <div className="flex items-center gap-1">
-                   <span className="text-xs text-slate-400">编辑模式: 自动保存</span>
-                </div>
-             )}
            </div>
 
-           {/* Upper: Editor Area */}
+           {/* Workspace Area */}
            <div className="flex-1 overflow-hidden flex flex-col relative">
-              {viewMode === 'LADDER' && (
-                <LadderEditor 
-                    networks={networks} 
-                    selectedElementId={selectedElement?.id || null}
-                    onElementSelect={setSelectedElement}
-                    onDeleteElement={handleDeleteElement}
-                />
-              )}
-              {viewMode === 'TAGS' && (
-                <TagEditor 
-                    tags={tags} 
-                    onUpdateTag={handleUpdateTag}
-                    onAddTag={handleAddTag}
-                    onDeleteTag={handleDeleteTag}
-                />
-              )}
+              {viewMode === 'LADDER' && <LadderEditor networks={networks} selectedElementId={selectedElement?.id || null} onElementSelect={setSelectedElement} onDeleteElement={handleDeleteElement}/>}
+              {viewMode === 'TAGS' && <TagEditor tags={tags} onUpdateTag={handleUpdateTag} onAddTag={handleAddTag} onDeleteTag={handleDeleteTag}/>}
               {viewMode === 'CONFIG' && <DeviceConfiguration />}
               {viewMode === 'DIAGNOSTICS' && <OnlineDiagnostics />}
+              {viewMode === 'GRAPHIC' && <GraphicEditor />}
            </div>
 
-           {/* Resizer Handle (Bottom) - Only show in Ladder Mode or if Inspector is needed */}
+           {/* Inspector Area */}
            {viewMode === 'LADDER' && (
-               <div 
-                 className="h-1 bg-slate-200 hover:bg-primary cursor-row-resize z-20 hover:h-1.5 transition-all"
-                 onMouseDown={startResizing('bottom')}
-               ></div>
-           )}
-
-           {/* Lower: Inspector Area */}
-           {viewMode === 'LADDER' && (
-              <div style={{ height: inspectorHeight }} className="shrink-0 flex flex-col">
-                  <Inspector 
-                    selectedElement={selectedElement} 
-                    onUpdateElement={handleUpdateElement}
-                  />
-              </div>
+              <>
+                <div className="h-1 bg-slate-200 hover:bg-primary cursor-row-resize z-20 transition-all" onMouseDown={startResizing('bottom')}></div>
+                <div style={{ height: inspectorHeight }} className="shrink-0 flex flex-col"><Inspector selectedElement={selectedElement} onUpdateElement={handleUpdateElement}/></div>
+              </>
            )}
         </div>
 
-        {/* Resizer Handle (Right) */}
-        {viewMode === 'LADDER' && (
-            <div 
-                className="w-1 bg-slate-200 hover:bg-primary cursor-col-resize z-20 hover:w-1.5 transition-all"
-                onMouseDown={startResizing('right')}
-            ></div>
-        )}
+        <div className="w-1 bg-slate-200 hover:bg-primary cursor-col-resize z-20 hover:w-1.5 transition-all" onMouseDown={startResizing('right')}></div>
 
-        {/* 3. Right Sidebar (Instruction Panel) */}
-        {viewMode === 'LADDER' && (
-            <div style={{ width: rightWidth }} className="flex flex-col shrink-0">
-                <InstructionPanel 
-                    onAddInstruction={handleAddInstruction}
-                    chatMessages={chatMessages}
-                    onSendMessage={handleSendMessage}
-                />
-            </div>
-        )}
+        {/* 3. Right Sidebar */}
+        <div style={{ width: rightWidth }} className="flex flex-col shrink-0">
+            <InstructionPanel onAddInstruction={handleAddInstruction} chatMessages={chatMessages} onSendMessage={handleSendMessage}/>
+        </div>
       </div>
     </div>
   );

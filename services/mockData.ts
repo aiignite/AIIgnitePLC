@@ -1,3 +1,4 @@
+
 import { ProjectNode, Network, ChatMessage, TagDefinition } from '../types';
 
 export const INITIAL_PROJECT_TREE: ProjectNode[] = [
@@ -22,6 +23,7 @@ export const INITIAL_PROJECT_TREE: ProjectNode[] = [
             isOpen: true,
             children: [
               { id: 'ob1', name: 'Main [OB1]', type: 'block', color: 'text-primary' },
+              { id: 'graph1', name: 'Motor_Logic [Graph]', type: 'graph_block', color: 'text-blue-500' },
               { id: 'fc1', name: 'Motor_Control [FC1]', type: 'block', color: 'text-purple-500' }
             ]
           },
@@ -91,18 +93,19 @@ export const INITIAL_CHAT: ChatMessage[] = [
   {
     id: 'm1',
     role: 'system',
-    content: "我已经分析了程序段 1。如果在停止按钮失效的情况下，自锁逻辑可能存在安全风险。需要我详细解释吗？",
-    actions: ['解释逻辑', '优化网络', '生成 SCL 代码']
+    content: "我注意到你添加了一个 PID 块。你想让我为你配置标准温度控制回路的参数吗？",
+    actions: ['优化 PID', '解释参数', '生成调节脚本']
   },
   {
     id: 'm2',
     role: 'user',
-    content: "请解释一下逻辑。"
+    content: "是的，针对响应缓慢的情况进行优化，以减少超调。"
   },
   {
     id: 'm3',
     role: 'system',
-    content: "程序段 1 实现了一个标准的'自锁'电路。\n• Start_Btn (%I0.0) 启动电流流动。\n• Motor_Coil (%Q0.0) 与启动按钮并联，实现电路自锁。\n• Stop_Btn (%I0.1) 切断电路。"
+    content: "基于'响应缓慢'，我建议增加积分作用时间 (Ti) 并减小比例增益 (Kp)。\n\nKp: 2.0 -> 0.8\nTi: 10s -> 25s",
+    actions: ['应用更改']
   }
 ];
 
