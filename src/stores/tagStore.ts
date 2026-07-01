@@ -3,6 +3,7 @@
  */
 
 import { create } from 'zustand';
+import { fetchWithAuth } from '../services/authFetch';
 import type { TagDefinition } from '../types';
 
 interface TagsState {
@@ -66,15 +67,23 @@ export const useTagStore = create<TagsState>((set, get) => ({
         ...(dataType && { dataType }),
       });
 
-      const response = await fetch(`${API_BASE}/projects/${projectId}/tags?${params}`);
+      const response = await fetchWithAuth(`${API_BASE}/projects/${projectId}/tags?${params}`);
       if (!response.ok) {
         throw new Error('获取变量列表失败');
       }
 
       const data = await response.json();
+
+      const mapTag = (tag: any): TagDefinition => ({
+        id: tag.id,
+        name: tag.name,
+        dataType: tag.data_type ?? tag.dataType ?? 'Bool',
+        address: tag.address,
+        comment: tag.comment ?? '',
+      });
       set({
-        tags: data.data,
-        filteredTags: data.data,
+        tags: data.data.map(mapTag),
+        filteredTags: data.data.map(mapTag),
         pagination: {
           total: data.total,
           page: data.page,
@@ -93,10 +102,16 @@ export const useTagStore = create<TagsState>((set, get) => ({
   createTag: async (projectId, tag) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_BASE}/projects/${projectId}/tags`, {
+      const response = await fetchWithAuth(`${API_BASE}/projects/${projectId}/tags`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tag),
+        body: JSON.stringify({
+          name: tag.name,
+          address: tag.address,
+          data_type: tag.dataType ?? (tag as any).data_type,
+          comment: tag.comment,
+          is_retentive: (tag as any).isRetentive ?? (tag as any).is_retentive,
+        }),
       });
 
       if (!response.ok) {
@@ -105,11 +120,18 @@ export const useTagStore = create<TagsState>((set, get) => ({
       }
 
       const newTag = await response.json();
+      const mappedTag: TagDefinition = {
+        id: newTag.id,
+        name: newTag.name,
+        dataType: newTag.data_type ?? newTag.dataType ?? 'Bool',
+        address: newTag.address,
+        comment: newTag.comment ?? '',
+      };
 
       // 添加到本地列表
-      set((state) => ({
-        tags: [newTag, ...state.tags],
-        filteredTags: [newTag, ...state.filteredTags],
+      set(state => ({
+        tags: [mappedTag, ...state.tags],
+        filteredTags: [mappedTag, ...state.filteredTags],
         pagination: {
           ...state.pagination,
           total: state.pagination.total + 1,
@@ -126,10 +148,16 @@ export const useTagStore = create<TagsState>((set, get) => ({
   updateTag: async (tagId, updates) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_BASE}/tags/${tagId}`, {
+      const response = await fetchWithAuth(`${API_BASE}/tags/${tagId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
+        body: JSON.stringify({
+          name: updates.name,
+          address: updates.address,
+          data_type: (updates as any).dataType ?? (updates as any).data_type,
+          comment: updates.comment,
+          is_retentive: (updates as any).isRetentive ?? (updates as any).is_retentive,
+        }),
       });
 
       if (!response.ok) {
@@ -138,14 +166,19 @@ export const useTagStore = create<TagsState>((set, get) => ({
       }
 
       const updatedTag = await response.json();
+      const mappedTag: TagDefinition = {
+        id: updatedTag.id,
+        name: updatedTag.name,
+        dataType: updatedTag.data_type ?? updatedTag.dataType ?? 'Bool',
+        address: updatedTag.address,
+        comment: updatedTag.comment ?? '',
+      };
 
       // 更新本地列表
-      set((state) => ({
-        tags: state.tags.map((tag) =>
-          tag.id === tagId ? { ...tag, ...updatedTag } : tag
-        ),
-        filteredTags: state.filteredTags.map((tag) =>
-          tag.id === tagId ? { ...tag, ...updatedTag } : tag
+      set(state => ({
+        tags: state.tags.map(tag => (tag.id === tagId ? { ...tag, ...mappedTag } : tag)),
+        filteredTags: state.filteredTags.map(tag =>
+          tag.id === tagId ? { ...tag, ...mappedTag } : tag
         ),
         isLoading: false,
       }));
@@ -156,10 +189,10 @@ export const useTagStore = create<TagsState>((set, get) => ({
   },
 
   // 删除变量
-  deleteTag: async (tagId) => {
+  deleteTag: async tagId => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_BASE}/tags/${tagId}`, {
+      const response = await fetchWithAuth(`${API_BASE}/tags/${tagId}`, {
         method: 'DELETE',
       });
 
@@ -169,9 +202,9 @@ export const useTagStore = create<TagsState>((set, get) => ({
       }
 
       // 从本地列表移除
-      set((state) => ({
-        tags: state.tags.filter((tag) => tag.id !== tagId),
-        filteredTags: state.filteredTags.filter((tag) => tag.id !== tagId),
+      set(state => ({
+        tags: state.tags.filter(tag => tag.id !== tagId),
+        filteredTags: state.filteredTags.filter(tag => tag.id !== tagId),
         pagination: {
           ...state.pagination,
           total: state.pagination.total - 1,
@@ -185,8 +218,8 @@ export const useTagStore = create<TagsState>((set, get) => ({
   },
 
   // 设置筛选条件
-  setFilters: (filters) => {
-    set((state) => ({
+  setFilters: filters => {
+    set(state => ({
       filters: { ...state.filters, ...filters },
     }));
 
@@ -198,7 +231,7 @@ export const useTagStore = create<TagsState>((set, get) => ({
   },
 
   // 设置错误
-  setError: (error) => {
+  setError: error => {
     set({ error });
   },
 }));

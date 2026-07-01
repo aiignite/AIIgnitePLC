@@ -1,35 +1,79 @@
 -- ============================================
--- AIIgnitePLC Database Schema
+-- AIIgnitePLC Database Schema - Optimized
 -- PostgreSQL 15+
 -- ============================================
 
--- 启用 UUID 扩展
+-- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================
--- 1. 项目主表 (projects)
+-- 0. Users & Authentication
+-- ============================================
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    refresh_token TEXT NOT NULL,
+    user_agent TEXT,
+    ip_address VARCHAR(45),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(refresh_token);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON user_sessions(expires_at);
+
+-- ============================================
+-- 0.1 Helper Functions
+-- ============================================
+CREATE OR REPLACE FUNCTION cleanup_expired_sessions()
+RETURNS void AS $$
+BEGIN
+    DELETE FROM user_sessions WHERE expires_at < CURRENT_TIMESTAMP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
+-- 1. Projects Table
 -- ============================================
 CREATE TABLE IF NOT EXISTS projects (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
     description TEXT,
     version INTEGER DEFAULT 1,
     created_by VARCHAR(100),
+    is_public BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(name, created_by)
 );
 
-COMMENT ON TABLE projects IS 'PLC 项目主表';
-COMMENT ON COLUMN projects.version IS '项目版本号，用于乐观锁';
+COMMENT ON TABLE projects IS 'PLC Projects master table';
+
+-- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_projects_created_by ON projects(created_by);
+CREATE INDEX IF NOT EXISTS idx_projects_is_public ON projects(is_public) WHERE is_public = true;
+CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC);
 
 -- ============================================
--- 2. 项目节点树 (project_nodes) - Adjacency List
+-- 2. Project Nodes (Tree Structure)
 -- ============================================
 CREATE TABLE IF NOT EXISTS project_nodes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     parent_id UUID REFERENCES project_nodes(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL CHECK (type IN ('folder', 'device', 'block', 'tag_table', 'config', 'settings')),
+    type VARCHAR(50) NOT NULL CHECK (type IN ('project', 'folder', 'device', 'block', 'block_ob', 'block_fc', 'block_fb', 'tag', 'tag_table', 'config', 'settings')),
     name VARCHAR(255) NOT NULL,
     color VARCHAR(50),
     is_open BOOLEAN DEFAULT false,
@@ -38,15 +82,14 @@ CREATE TABLE IF NOT EXISTS project_nodes (
     UNIQUE (project_id, parent_id, name)
 );
 
-COMMENT ON TABLE project_nodes IS '项目树节点，使用邻接表模式';
-COMMENT ON COLUMN project_nodes.parent_id IS '父节点 ID，NULL 表示根节点';
-COMMENT ON COLUMN project_nodes.is_open IS 'UI 展开状态';
-
+-- Performance indexes
 CREATE INDEX IF NOT EXISTS idx_nodes_parent ON project_nodes(parent_id);
 CREATE INDEX IF NOT EXISTS idx_nodes_project ON project_nodes(project_id);
+CREATE INDEX IF NOT EXISTS idx_nodes_project_type ON project_nodes(project_id, type);
+CREATE INDEX IF NOT EXISTS idx_nodes_order ON project_nodes(project_id, parent_id, order_index);
 
 -- ============================================
--- 3. 变量表 (Tags) - 强关系存储
+-- 3. Tags Table
 -- ============================================
 CREATE TABLE IF NOT EXISTS tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -61,15 +104,14 @@ CREATE TABLE IF NOT EXISTS tags (
     UNIQUE (project_id, name)
 );
 
-COMMENT ON TABLE tags IS 'PLC 变量标签表';
-COMMENT ON COLUMN tags.address IS 'PLC 地址，如 %I0.0, %Q0.0, %M10.0';
-COMMENT ON COLUMN tags.is_retentive IS '是否保持型变量（断电保持）';
-
--- 地址索引用于冲突检测
+-- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_tags_project ON tags(project_id);
 CREATE INDEX IF NOT EXISTS idx_tags_address ON tags(address);
+CREATE INDEX IF NOT EXISTS idx_tags_project_address ON tags(project_id, address);
+CREATE INDEX IF NOT EXISTS idx_tags_data_type ON tags(data_type);
 
 -- ============================================
--- 4. 程序块 (program_blocks) - JSONB 存储
+-- 4. Program Blocks
 -- ============================================
 CREATE TABLE IF NOT EXISTS program_blocks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -84,16 +126,34 @@ CREATE TABLE IF NOT EXISTS program_blocks (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE program_blocks IS '程序块逻辑内容，使用 JSONB 存储 Ladder Logic';
-COMMENT ON COLUMN program_blocks.block_type IS 'OB=组织块, FC=功能, FB=功能块, DB=数据块';
-COMMENT ON COLUMN program_blocks.content IS 'JSONB 存储完整的 networks 数组';
-COMMENT ON COLUMN program_blocks.version IS '乐观锁版本号';
-
--- GIN 索引用于 JSONB 查询（如查找使用 Timer 指令的块）
-CREATE INDEX IF NOT EXISTS idx_blocks_content_gin ON program_blocks USING GIN (content);
+-- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_blocks_node ON program_blocks(node_id);
+CREATE INDEX IF NOT EXISTS idx_blocks_content_gin ON program_blocks USING GIN (content jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_blocks_type ON program_blocks(block_type);
 
 -- ============================================
--- 5. PLC 运行时模拟状态
+-- 5. Hardware Modules
+-- ============================================
+CREATE TABLE IF NOT EXISTS hardware_modules (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    slot INTEGER NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    article_number VARCHAR(255),
+    firmware VARCHAR(50),
+    type VARCHAR(20) NOT NULL CHECK (type IN ('ps', 'cpu', 'io', 'comm', 'empty')),
+    hw_id INTEGER,
+    config JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (project_id, slot)
+);
+
+CREATE INDEX IF NOT EXISTS idx_hw_project ON hardware_modules(project_id);
+CREATE INDEX IF NOT EXISTS idx_hw_slot ON hardware_modules(project_id, slot);
+
+-- ============================================
+-- 6. PLC Runtime State
 -- ============================================
 CREATE TABLE IF NOT EXISTS plc_runtime_state (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -105,11 +165,11 @@ CREATE TABLE IF NOT EXISTS plc_runtime_state (
     UNIQUE (project_id, tag_address)
 );
 
-COMMENT ON TABLE plc_runtime_state IS 'Mock PLC 运行时状态，用于在线监控模拟';
-COMMENT ON COLUMN plc_runtime_state.quality IS '值质量：good, bad, uncertain';
+CREATE INDEX IF NOT EXISTS idx_runtime_project ON plc_runtime_state(project_id);
+CREATE INDEX IF NOT EXISTS idx_runtime_updated ON plc_runtime_state(last_updated DESC);
 
 -- ============================================
--- 6. 项目导入记录
+-- 7. Import History
 -- ============================================
 CREATE TABLE IF NOT EXISTS import_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -121,10 +181,32 @@ CREATE TABLE IF NOT EXISTS import_history (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE import_history IS '项目导入历史记录，用于格式兼容性追踪';
+CREATE INDEX IF NOT EXISTS idx_import_project ON import_history(project_id);
+CREATE INDEX IF NOT EXISTS idx_import_created ON import_history(created_at DESC);
 
 -- ============================================
--- 触发器：自动更新 updated_at
+-- 8. Audit Logs
+-- ============================================
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(50) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id UUID,
+    details JSONB,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_project ON audit_logs(project_id);
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at DESC);
+
+-- ============================================
+-- Triggers
 -- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -134,63 +216,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 为 projects 表添加触发器
 DROP TRIGGER IF EXISTS update_projects_updated_at ON projects;
 CREATE TRIGGER update_projects_updated_at
     BEFORE UPDATE ON projects
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- 为 tags 表添加触发器
 DROP TRIGGER IF EXISTS update_tags_updated_at ON tags;
 CREATE TRIGGER update_tags_updated_at
     BEFORE UPDATE ON tags
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- 为 program_blocks 表添加触发器
 DROP TRIGGER IF EXISTS update_program_blocks_updated_at ON program_blocks;
 CREATE TRIGGER update_program_blocks_updated_at
     BEFORE UPDATE ON program_blocks
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- ============================================
--- 初始化示例数据（可选）
--- ============================================
-
--- 创建默认项目
-INSERT INTO projects (name, description, created_by)
-VALUES ('Demo Project', '示例 PLC 项目', 'system')
-ON CONFLICT (name) DO NOTHING;
-
--- 创建默认变量
-INSERT INTO tags (project_id, name, address, data_type, comment)
-SELECT
-    (SELECT id FROM projects WHERE name = 'Demo Project'),
-    'Start_Button',
-    '%I0.0',
-    'Bool',
-    '主启动按钮'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO tags (project_id, name, address, data_type, comment)
-SELECT
-    (SELECT id FROM projects WHERE name = 'Demo Project'),
-    'Stop_Button',
-    '%I0.1',
-    'Bool',
-    '停止按钮'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO tags (project_id, name, address, data_type, comment)
-SELECT
-    (SELECT id FROM projects WHERE name = 'Demo Project'),
-    'Motor_Output',
-    '%Q0.0',
-    'Bool',
-    '电机输出线圈'
-ON CONFLICT DO NOTHING;
+DROP TRIGGER IF EXISTS update_hardware_modules_updated_at ON hardware_modules;
+CREATE TRIGGER update_hardware_modules_updated_at
+    BEFORE UPDATE ON hardware_modules
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
--- 数据字典视图
+-- Views
 -- ============================================
 CREATE OR REPLACE VIEW v_project_summary AS
 SELECT
@@ -198,6 +245,7 @@ SELECT
     p.name,
     p.description,
     p.version,
+    p.is_public,
     p.created_at,
     p.updated_at,
     COUNT(DISTINCT pn.id) as node_count,
@@ -206,7 +254,24 @@ SELECT
 FROM projects p
 LEFT JOIN project_nodes pn ON p.id = pn.project_id
 LEFT JOIN tags t ON p.id = t.project_id
-LEFT JOIN program_blocks pb ON p.id = (SELECT project_id FROM project_nodes WHERE id = pb.node_id)
+LEFT JOIN program_blocks pb ON pb.node_id IN (SELECT id FROM project_nodes WHERE project_id = p.id)
 GROUP BY p.id;
 
-COMMENT ON VIEW v_project_summary IS '项目汇总视图';
+-- Materialized view for statistics
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_project_stats AS
+SELECT
+    p.id as project_id,
+    COUNT(DISTINCT pn.id) as total_nodes,
+    COUNT(DISTINCT t.id) as total_tags,
+    COUNT(DISTINCT pb.id) as total_blocks,
+    COUNT(DISTINCT hm.id) as total_hardware_modules,
+    MAX(t.updated_at) as last_tag_update,
+    MAX(pb.updated_at) as last_block_update
+FROM projects p
+LEFT JOIN project_nodes pn ON p.id = pn.project_id
+LEFT JOIN tags t ON p.id = t.project_id
+LEFT JOIN program_blocks pb ON pb.node_id IN (SELECT id FROM project_nodes WHERE project_id = p.id)
+LEFT JOIN hardware_modules hm ON p.id = hm.project_id
+GROUP BY p.id;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_project_stats_id ON mv_project_stats(project_id);

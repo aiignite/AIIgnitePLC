@@ -8,40 +8,46 @@ ws.on('open', () => {
   console.log('✅ WebSocket 连接成功');
 
   // 订阅地址
-  ws.send(JSON.stringify({
-    type: 'subscribe',
-    payload: {
-      addresses: ['%I0.0', '%Q0.0', '%M0.0']
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'subscribe',
+      payload: {
+        addresses: ['%I0.0', '%Q0.0', '%M0.0'],
+      },
+    })
+  );
   console.log('📧 已订阅地址: %I0.0, %Q0.0, %M0.0');
 
   // 写入值 - 按下启动按钮
   setTimeout(() => {
-    ws.send(JSON.stringify({
-      type: 'write_value',
-      payload: {
-        address: '%I0.0',
-        value: true
-      }
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'write_value',
+        payload: {
+          address: '%I0.0',
+          value: true,
+        },
+      })
+    );
     console.log('✏️ 写入: %I0.0 = true (启动按钮)');
   }, 1000);
 
   // 再按停止按钮
   setTimeout(() => {
-    ws.send(JSON.stringify({
-      type: 'write_value',
-      payload: {
-        address: '%I0.1',
-        value: true
-      }
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'write_value',
+        payload: {
+          address: '%I0.1',
+          value: true,
+        },
+      })
+    );
     console.log('✏️ 写入: %I0.1 = true (停止按钮)');
   }, 3000);
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const msg = JSON.parse(data);
   messageCount++;
 
@@ -57,7 +63,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (error) => {
+ws.on('error', error => {
   console.error('❌ WebSocket 错误:', error.message);
   console.error('错误详情:', error);
   process.exit(1);

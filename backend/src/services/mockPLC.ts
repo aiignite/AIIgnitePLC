@@ -22,15 +22,15 @@ export class MockPLCRuntime {
   // 默认初始状态
   private readonly defaultState: Record<string, boolean | number> = {
     // 输入
-    '%I0.0': false,  // Start Button
-    '%I0.1': false,  // Stop Button
-    '%I0.2': false,  // Emergency Stop
+    '%I0.0': false, // Start Button
+    '%I0.1': false, // Stop Button
+    '%I0.2': false, // Emergency Stop
     // 输出
-    '%Q0.0': false,  // Motor Output
-    '%Q0.1': false,  // Warning Light
+    '%Q0.0': false, // Motor Output
+    '%Q0.1': false, // Warning Light
     // 内存位
-    '%M0.0': false,  // Latching Coil
-    '%M0.1': false,  // Timer Done
+    '%M0.0': false, // Latching Coil
+    '%M0.1': false, // Timer Done
     // 定时器
     '%T0': 0,
   };
@@ -70,6 +70,13 @@ export class MockPLCRuntime {
   }
 
   /**
+   * 获取运行状态
+   */
+  getStatus(): 'running' | 'stopped' {
+    return this.isRunning ? 'running' : 'stopped';
+  }
+
+  /**
    * 订阅地址变化
    */
   subscribe(address: string) {
@@ -77,11 +84,13 @@ export class MockPLCRuntime {
     // 立即发送当前值
     const value = this.state.get(address);
     if (value !== undefined && this.updateCallback) {
-      this.updateCallback([{
-        address,
-        value,
-        quality: 'good',
-      }]);
+      this.updateCallback([
+        {
+          address,
+          value,
+          quality: 'good',
+        },
+      ]);
     }
   }
 
@@ -101,11 +110,13 @@ export class MockPLCRuntime {
 
     // 通知订阅者
     if (this.updateCallback) {
-      this.updateCallback([{
-        address,
-        value,
-        quality: 'good',
-      }]);
+      this.updateCallback([
+        {
+          address,
+          value,
+          quality: 'good',
+        },
+      ]);
     }
 
     console.log(`✏️ 写入: ${address} = ${value} (原值: ${oldValue})`);
@@ -116,7 +127,7 @@ export class MockPLCRuntime {
    */
   getAllValues(): Map<string, any> {
     const result = new Map();
-    this.subscriptions.forEach((addr) => {
+    this.subscriptions.forEach(addr => {
       result.set(addr, this.state.get(addr));
     });
     return result;
@@ -136,8 +147,8 @@ export class MockPLCRuntime {
     const updates: PLCValueUpdate[] = [];
 
     // 1. 模拟输入随机变化
-    this.simulateInputChange('%I0.0', 0.02);  // Start Button
-    this.simulateInputChange('%I0.1', 0.01);  // Stop Button
+    this.simulateInputChange('%I0.0', 0.02); // Start Button
+    this.simulateInputChange('%I0.1', 0.01); // Stop Button
 
     // 2. 执行 PLC 逻辑（简单的自锁电路）
     const startBtn = this.state.get('%I0.0') || false;
@@ -196,11 +207,13 @@ export class MockPLCRuntime {
       this.state.set(address, newValue);
 
       if (this.subscriptions.has(address) && this.updateCallback) {
-        this.updateCallback([{
-          address,
-          value: newValue,
-          quality: 'good',
-        }]);
+        this.updateCallback([
+          {
+            address,
+            value: newValue,
+            quality: 'good',
+          },
+        ]);
       }
     }
   }

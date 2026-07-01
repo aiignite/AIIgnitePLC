@@ -1,8 +1,19 @@
-
 export interface ProjectNode {
   id: string;
   name: string;
-  type: 'folder' | 'device' | 'block' | 'tag' | 'root' | 'settings' | 'config';
+  type:
+    | 'project'
+    | 'folder'
+    | 'device'
+    | 'block'
+    | 'block_ob'
+    | 'block_fc'
+    | 'block_fb'
+    | 'tag'
+    | 'tag_table'
+    | 'root'
+    | 'settings'
+    | 'config';
   color?: string; // For icon color
   children?: ProjectNode[];
   isOpen?: boolean;
@@ -53,7 +64,38 @@ export interface TagDefinition {
 }
 
 // Global View State
-export type ViewMode = 'LADDER' | 'TAGS' | 'CONFIG' | 'DIAGNOSTICS';
+export type ViewMode = 'LADDER' | 'ST' | 'SFC' | 'TAGS' | 'CONFIG' | 'DIAGNOSTICS';
+
+export interface SfcAction {
+  type: 'N' | 'S' | 'R' | 'L';
+  st?: string;
+  address?: string;
+  value?: boolean;
+}
+
+export interface SfcStep {
+  id: string;
+  actions: SfcAction[];
+}
+
+export interface SfcTransition {
+  from: string;
+  to: string;
+  condition: string;
+}
+
+export interface SfcProgram {
+  initialStep: string;
+  steps: SfcStep[];
+  transitions: SfcTransition[];
+}
+
+export interface BlockContent {
+  version?: string;
+  networks?: Network[];
+  st_source?: string;
+  sfc?: SfcProgram;
+}
 
 export interface Instruction {
   id: string;

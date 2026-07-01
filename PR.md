@@ -2,11 +2,11 @@
 
 ## 文档信息
 
-| 属性 | 值 |
-|------|-----|
-| 文档版本 | 1.0 |
-| 创建日期 | 2026-01-25 |
-| 适用场景 | 网页型PLC编程工具开发 |
+| 属性     | 值                               |
+| -------- | -------------------------------- |
+| 文档版本 | 1.0                              |
+| 创建日期 | 2026-01-25                       |
+| 适用场景 | 网页型PLC编程工具开发            |
 | 核心主题 | 西门子程序导入导出与多平台兼容性 |
 
 ## 目录
@@ -30,13 +30,13 @@
 
 在程序文件格式方面，西门子定义了多种专用格式以适应不同的编程范式和用途需求：
 
-| 文件格式 | 说明 | 编程语言 |
-|---------|------|---------|
-| `.scl` | 结构化控制语言源文件 | ST（Structured Text） |
-| `.awl` | 语句表格式 | IL（Instruction List） |
-| `.scd` | 顺序功能图程序 | SFC（Sequential Function Chart） |
-| `.sdf` | 功能块图程序 | FBD（Function Block Diagram） |
-| `.ap17` | TIA Portal项目主文件 | 复合格式 |
+| 文件格式 | 说明                 | 编程语言                         |
+| -------- | -------------------- | -------------------------------- |
+| `.scl`   | 结构化控制语言源文件 | ST（Structured Text）            |
+| `.awl`   | 语句表格式           | IL（Instruction List）           |
+| `.scd`   | 顺序功能图程序       | SFC（Sequential Function Chart） |
+| `.sdf`   | 功能块图程序         | FBD（Function Block Diagram）    |
+| `.ap17`  | TIA Portal项目主文件 | 复合格式                         |
 
 值得特别关注的是，西门子在TIA Portal V16及更高版本中引入了基于XML的导入导出机制。这一特性为第三方程序的互操作性提供了技术基础。根据西门子官方文档的说明，LAD（梯形图）和FBD程序现在可以通过XML格式进行交换，这为构建网页端编程工具的导入功能提供了可行的技术路径。
 
@@ -158,19 +158,19 @@ FUNCTION_BLOCK FB_TemperatureControl
         IntegralTerm  : REAL := 0.0;
         LastError     : REAL := 0.0;
     END_VAR
-    
+
     // 主控制逻辑
     Error := SetPoint - CurrentTemp;
     IntegralTerm := IntegralTerm + (Error * 0.1);
-    
+
     IF IntegralTerm > 100.0 THEN
         IntegralTerm := 100.0;
     ELSIF IntegralTerm < -100.0 THEN
         IntegralTerm := -100.0;
     END_IF;
-    
+
     ControlOutput := (Kp * Error) + (Ki * IntegralTerm);
-    
+
     // 输出限幅
     IF ControlOutput > 100.0 THEN
         ControlOutput := 100.0;
@@ -213,13 +213,13 @@ IEC 61131-3构建了一个层次化的程序组织结构：
 
 #### 2.1.2 五种编程语言定义
 
-| 语言 | 全称 | 特点 | 适用场景 |
-|-----|------|------|---------|
-| IL | Instruction List | 类汇编语言，低级指令 | 追求执行效率的场合 |
-| LD | Ladder Diagram | 图形化继电器逻辑 | 电气工程师习惯 |
-| FBD | Function Block Diagram | 数据流图形连接 | 过程控制、连续量 |
-| SFC | Sequential Function Chart | 顺序控制图形化 | 批处理、状态机 |
-| ST | Structured Text | 类Pascal高级文本 | 复杂算法、数据处理 |
+| 语言 | 全称                      | 特点                 | 适用场景           |
+| ---- | ------------------------- | -------------------- | ------------------ |
+| IL   | Instruction List          | 类汇编语言，低级指令 | 追求执行效率的场合 |
+| LD   | Ladder Diagram            | 图形化继电器逻辑     | 电气工程师习惯     |
+| FBD  | Function Block Diagram    | 数据流图形连接       | 过程控制、连续量   |
+| SFC  | Sequential Function Chart | 顺序控制图形化       | 批处理、状态机     |
+| ST   | Structured Text           | 类Pascal高级文本     | 复杂算法、数据处理 |
 
 IEC 61131-3中国国家标准GB/T 15969.3对应国际标准的第三部分，规定了编程语言的具体要求。国内PLC开发工具和自动化系统普遍遵循这一标准，这为构建通用编程平台提供了规范基础。
 
@@ -232,14 +232,14 @@ IEC 61131-10定义了基于XML的PLC程序交换格式，通常被称为PLCOpen 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://www.plcopen.org/xml(tc2)">
-    <fileHeader 
-        companyName="Siemens" 
-        productName="TIA Portal" 
+    <fileHeader
+        companyName="Siemens"
+        productName="TIA Portal"
         productVersion="V17.0"
         creationDateTime="2025-01-25T10:30:00"/>
-    
-    <contentHeader 
-        name="MotorControlProject" 
+
+    <contentHeader
+        name="MotorControlProject"
         modificationDateTime="2025-01-25T10:30:00">
         <coordinateInfo>
             <fbd>
@@ -247,7 +247,7 @@ IEC 61131-10定义了基于XML的PLC程序交换格式，通常被称为PLCOpen 
             </fbd>
         </coordinateInfo>
     </contentHeader>
-    
+
     <types>
         <dataTypes/>
         <pous>
@@ -277,11 +277,11 @@ IEC 61131-10定义了基于XML的PLC程序交换格式，通常被称为PLCOpen 
             </pou>
         </pous>
     </types>
-    
+
     <instances>
         <configurations/>
     </instances>
-    
+
     <addData>
         <data name="TIA Portal" handleUnknown="preserve">
             <TIAProject>
@@ -296,16 +296,16 @@ IEC 61131-10定义了基于XML的PLC程序交换格式，通常被称为PLCOpen 
 
 #### 2.2.2 核心元素说明
 
-| 元素 | 说明 |
-|------|------|
-| `<project>` | 根元素，代表完整的PLC工程项目 |
-| `<fileHeader>` | 文件头部信息，包含公司名、产品名、版本等 |
-| `<contentHeader>` | 内容头部信息，包含项目名称和修改时间 |
-| `<types>` | 类型定义区域，包含数据类型和POU定义 |
-| `<dataTypes>` | 用户自定义数据类型 |
-| `<pous>` | 程序组织单元集合 |
-| `<instances>` | 实例配置区域 |
-| `<addData>` | 供应商特定数据扩展区域 |
+| 元素              | 说明                                     |
+| ----------------- | ---------------------------------------- |
+| `<project>`       | 根元素，代表完整的PLC工程项目            |
+| `<fileHeader>`    | 文件头部信息，包含公司名、产品名、版本等 |
+| `<contentHeader>` | 内容头部信息，包含项目名称和修改时间     |
+| `<types>`         | 类型定义区域，包含数据类型和POU定义      |
+| `<dataTypes>`     | 用户自定义数据类型                       |
+| `<pous>`          | 程序组织单元集合                         |
+| `<instances>`     | 实例配置区域                             |
+| `<addData>`       | 供应商特定数据扩展区域                   |
 
 #### 2.2.3 供应商特定信息处理
 
@@ -379,95 +379,95 @@ AST节点类型的设计需要覆盖PLC程序的核心语义元素：
 ```typescript
 // 基础节点接口
 interface ASTNode {
-    location: SourceLocation;  // 源码位置信息
-    nodeType: string;          // 节点类型标识
+  location: SourceLocation; // 源码位置信息
+  nodeType: string; // 节点类型标识
 }
 
 // 表达式节点
 interface Expression extends ASTNode {
-    dataType?: DataType;       // 表达式数据类型
+  dataType?: DataType; // 表达式数据类型
 }
 
 interface BinaryOp extends Expression {
-    operator: string;          // 运算符: '+', '-', '*', '/', 'AND', 'OR'
-    left: Expression;          // 左操作数
-    right: Expression;         // 右操作数
+  operator: string; // 运算符: '+', '-', '*', '/', 'AND', 'OR'
+  left: Expression; // 左操作数
+  right: Expression; // 右操作数
 }
 
 interface UnaryOp extends Expression {
-    operator: string;          // 运算符: 'NOT', '-', '+'
-    operand: Expression;       // 操作数
+  operator: string; // 运算符: 'NOT', '-', '+'
+  operand: Expression; // 操作数
 }
 
 interface FunctionCall extends Expression {
-    functionName: string;      // 函数名
-    arguments: Expression[];   // 参数列表
+  functionName: string; // 函数名
+  arguments: Expression[]; // 参数列表
 }
 
 interface VariableRef extends Expression {
-    variableName: string;      // 变量名
-    accessPath?: string[];     // 嵌套成员访问路径
+  variableName: string; // 变量名
+  accessPath?: string[]; // 嵌套成员访问路径
 }
 
 interface Literal extends Expression {
-    value: any;                // 字面量值
+  value: any; // 字面量值
 }
 
 // 语句节点
 interface Statement extends ASTNode {
-    nextStatement?: Statement; // 下一条语句（链表形式）
+  nextStatement?: Statement; // 下一条语句（链表形式）
 }
 
 interface Assignment extends Statement {
-    target: VariableRef;       // 赋值目标
-    value: Expression;         // 赋值表达式
+  target: VariableRef; // 赋值目标
+  value: Expression; // 赋值表达式
 }
 
 interface IfStatement extends Statement {
-    condition: Expression;     // 条件表达式
-    thenBranch: Statement[];   // THEN分支
-    elseIfBranches?: Array<{condition: Expression; body: Statement[]}>;
-    elseBranch?: Statement[];  // ELSE分支
+  condition: Expression; // 条件表达式
+  thenBranch: Statement[]; // THEN分支
+  elseIfBranches?: Array<{ condition: Expression; body: Statement[] }>;
+  elseBranch?: Statement[]; // ELSE分支
 }
 
 interface ForStatement extends Statement {
-    counterVar: string;        // 循环变量
-    startValue: Expression;    // 起始值
-    endValue: Expression;      // 结束值
-    stepValue?: Expression;    // 步长
-    body: Statement[];         // 循环体
+  counterVar: string; // 循环变量
+  startValue: Expression; // 起始值
+  endValue: Expression; // 结束值
+  stepValue?: Expression; // 步长
+  body: Statement[]; // 循环体
 }
 
 interface WhileStatement extends Statement {
-    condition: Expression;     // 循环条件
-    body: Statement[];         // 循环体
+  condition: Expression; // 循环条件
+  body: Statement[]; // 循环体
 }
 
 interface ReturnStatement extends Statement {
-    value?: Expression;        // 返回值
+  value?: Expression; // 返回值
 }
 
 // 声明节点
 interface Declaration extends ASTNode {
-    name: string;              // 名称
-    dataType: DataType;        // 数据类型
+  name: string; // 名称
+  dataType: DataType; // 数据类型
 }
 
 interface VariableDecl extends Declaration {
-    initializer?: Expression;  // 初始化表达式
-    address?: string;          // 绝对地址，如%I0.0
-    retain?: boolean;          // 保持属性
-    constant?: boolean;        // 常量属性
-    direction?: 'INPUT' | 'OUTPUT' | 'IN_OUT'; // 变量方向
+  initializer?: Expression; // 初始化表达式
+  address?: string; // 绝对地址，如%I0.0
+  retain?: boolean; // 保持属性
+  constant?: boolean; // 常量属性
+  direction?: 'INPUT' | 'OUTPUT' | 'IN_OUT'; // 变量方向
 }
 
 interface FunctionBlockDecl extends Declaration {
-    body: Statement[];         // 函数体
-    variables: VariableDecl[]; // 局部变量
-    inputVars: VariableDecl[]; // 输入变量
-    outputVars: VariableDecl[];// 输出变量
-    inOutVars: VariableDecl[]; // 输入输出变量
-    tempVars: VariableDecl[];  // 临时变量
+  body: Statement[]; // 函数体
+  variables: VariableDecl[]; // 局部变量
+  inputVars: VariableDecl[]; // 输入变量
+  outputVars: VariableDecl[]; // 输出变量
+  inOutVars: VariableDecl[]; // 输入输出变量
+  tempVars: VariableDecl[]; // 临时变量
 }
 ```
 
@@ -479,34 +479,88 @@ interface FunctionBlockDecl extends Declaration {
 
 ```typescript
 enum TokenType {
-    // 关键字
-    FUNCTION, FUNCTION_BLOCK, PROGRAM, VAR, VAR_INPUT, VAR_OUTPUT,
-    VAR_IN_OUT, VAR_TEMP, VAR_CONSTANT, END_VAR, BEGIN, END_FUNCTION,
-    END_FUNCTION_BLOCK, END_PROGRAM, IF, THEN, ELSIF, ELSE, END_IF,
-    FOR, TO, BY, DO, END_FOR, WHILE, END_WHILE, REPEAT, UNTIL,
-    END_REPEAT, CASE, OF, END_CASE, RETURN, EXIT, CONTINUE,
-    
-    // 标识符和字面量
-    IDENTIFIER, NUMBER, STRING, TRUE, FALSE,
-    
-    // 运算符
-    PLUS, MINUS, MULT, DIV, MOD, ASSIGN,
-    EQ, NE, LT, GT, LE, GE,
-    AND, OR, XOR, NOT,
-    
-    // 分隔符
-    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET, RIGHT_BRACKET,
-    DOT, COMMA, COLON, SEMICOLON,
-    
-    // 特殊符号
-    EOF, INVALID
+  // 关键字
+  FUNCTION,
+  FUNCTION_BLOCK,
+  PROGRAM,
+  VAR,
+  VAR_INPUT,
+  VAR_OUTPUT,
+  VAR_IN_OUT,
+  VAR_TEMP,
+  VAR_CONSTANT,
+  END_VAR,
+  BEGIN,
+  END_FUNCTION,
+  END_FUNCTION_BLOCK,
+  END_PROGRAM,
+  IF,
+  THEN,
+  ELSIF,
+  ELSE,
+  END_IF,
+  FOR,
+  TO,
+  BY,
+  DO,
+  END_FOR,
+  WHILE,
+  END_WHILE,
+  REPEAT,
+  UNTIL,
+  END_REPEAT,
+  CASE,
+  OF,
+  END_CASE,
+  RETURN,
+  EXIT,
+  CONTINUE,
+
+  // 标识符和字面量
+  IDENTIFIER,
+  NUMBER,
+  STRING,
+  TRUE,
+  FALSE,
+
+  // 运算符
+  PLUS,
+  MINUS,
+  MULT,
+  DIV,
+  MOD,
+  ASSIGN,
+  EQ,
+  NE,
+  LT,
+  GT,
+  LE,
+  GE,
+  AND,
+  OR,
+  XOR,
+  NOT,
+
+  // 分隔符
+  LEFT_PAREN,
+  RIGHT_PAREN,
+  LEFT_BRACKET,
+  RIGHT_BRACKET,
+  DOT,
+  COMMA,
+  COLON,
+  SEMICOLON,
+
+  // 特殊符号
+  EOF,
+  INVALID,
 }
 
 interface Token {
-    type: TokenType;
-    value: string;
-    numericValue?: number;
-    location: SourceLocation;
+  type: TokenType;
+  value: string;
+  numericValue?: number;
+  location: SourceLocation;
 }
 ```
 
@@ -514,259 +568,255 @@ interface Token {
 
 ```typescript
 class SCLParser {
-    private tokens: Token[];
-    private currentIndex: number;
-    private diagnostics: ParseDiagnostic[] = [];
-    
-    public parse(sourceCode: string): ParseResult {
-        // 词法分析
-        const lexer = new Lexer();
-        this.tokens = lexer.tokenize(sourceCode);
-        this.currentIndex = 0;
-        
-        // 语法分析
-        const ast = this.parseProgram();
-        
-        // 语义分析
-        this.performSemanticAnalysis(ast);
-        
-        return {
-            ast,
-            diagnostics: this.diagnostics,
-            tokens: this.tokens
-        };
+  private tokens: Token[];
+  private currentIndex: number;
+  private diagnostics: ParseDiagnostic[] = [];
+
+  public parse(sourceCode: string): ParseResult {
+    // 词法分析
+    const lexer = new Lexer();
+    this.tokens = lexer.tokenize(sourceCode);
+    this.currentIndex = 0;
+
+    // 语法分析
+    const ast = this.parseProgram();
+
+    // 语义分析
+    this.performSemanticAnalysis(ast);
+
+    return {
+      ast,
+      diagnostics: this.diagnostics,
+      tokens: this.tokens,
+    };
+  }
+
+  private parseProgram(): Program {
+    let pouType: 'program' | 'functionBlock' | 'function' = 'program';
+    let name = 'UnnamedProgram';
+
+    if (this.match(TokenType.FUNCTION_BLOCK)) {
+      pouType = 'functionBlock';
+      name = this.consume(TokenType.IDENTIFIER).value;
+    } else if (this.match(TokenType.FUNCTION)) {
+      pouType = 'function';
+      name = this.consume(TokenType.IDENTIFIER).value;
+    } else if (this.match(TokenType.PROGRAM)) {
+      pouType = 'program';
+      name = this.consume(TokenType.IDENTIFIER).value;
     }
-    
-    private parseProgram(): Program {
-        let pouType: 'program' | 'functionBlock' | 'function' = 'program';
-        let name = 'UnnamedProgram';
-        
-        if (this.match(TokenType.FUNCTION_BLOCK)) {
-            pouType = 'functionBlock';
-            name = this.consume(TokenType.IDENTIFIER).value;
-        } else if (this.match(TokenType.FUNCTION)) {
-            pouType = 'function';
-            name = this.consume(TokenType.IDENTIFIER).value;
-        } else if (this.match(TokenType.PROGRAM)) {
-            pouType = 'program';
-            name = this.consume(TokenType.IDENTIFIER).value;
-        }
-        
-        // 解析变量声明区域
-        const variables = this.parseVariableSections();
-        
-        // 解析函数体
-        this.consume(TokenType.BEGIN);
-        const body: Statement[] = [];
-        while (!this.checkEndKeyword()) {
-            body.push(this.parseStatement());
-        }
-        this.consumeEndKeyword();
-        
-        return new Program(name, pouType, variables, body);
+
+    // 解析变量声明区域
+    const variables = this.parseVariableSections();
+
+    // 解析函数体
+    this.consume(TokenType.BEGIN);
+    const body: Statement[] = [];
+    while (!this.checkEndKeyword()) {
+      body.push(this.parseStatement());
     }
-    
-    private parseStatement(): Statement {
-        if (this.match(TokenType.IF)) {
-            return this.parseIfStatement();
-        } else if (this.match(TokenType.FOR)) {
-            return this.parseForStatement();
-        } else if (this.match(TokenType.WHILE)) {
-            return this.parseWhileStatement();
-        } else if (this.match(TokenType.RETURN)) {
-            return this.parseReturnStatement();
-        } else {
-            // 赋值语句或表达式语句
-            const expr = this.parseExpression();
-            this.consume(TokenType.SEMICOLON);
-            return new ExpressionStatement(expr);
-        }
+    this.consumeEndKeyword();
+
+    return new Program(name, pouType, variables, body);
+  }
+
+  private parseStatement(): Statement {
+    if (this.match(TokenType.IF)) {
+      return this.parseIfStatement();
+    } else if (this.match(TokenType.FOR)) {
+      return this.parseForStatement();
+    } else if (this.match(TokenType.WHILE)) {
+      return this.parseWhileStatement();
+    } else if (this.match(TokenType.RETURN)) {
+      return this.parseReturnStatement();
+    } else {
+      // 赋值语句或表达式语句
+      const expr = this.parseExpression();
+      this.consume(TokenType.SEMICOLON);
+      return new ExpressionStatement(expr);
     }
-    
-    private parseIfStatement(): IfStatement {
-        this.consume(TokenType.LEFT_PAREN);
-        const condition = this.parseExpression();
-        this.consume(TokenType.RIGHT_PAREN);
-        this.consume(TokenType.THEN);
-        
-        const thenBranch: Statement[] = [];
-        while (!this.match(TokenType.ELSE, TokenType.ELSIF, TokenType.END_IF)) {
-            thenBranch.push(this.parseStatement());
-        }
-        
-        const elseIfBranches: Array<{condition: Expression; body: Statement[]}> = [];
-        let elseBranch: Statement[] | undefined;
-        
-        while (this.match(TokenType.ELSIF)) {
-            this.consume(TokenType.LEFT_PAREN);
-            const elseIfCondition = this.parseExpression();
-            this.consume(TokenType.RIGHT_PAREN);
-            this.consume(TokenType.THEN);
-            
-            const elseIfBody: Statement[] = [];
-            while (!this.match(TokenType.ELSE, TokenType.ELSIF, TokenType.END_IF)) {
-                elseIfBody.push(this.parseStatement());
-            }
-            elseIfBranches.push({condition: elseIfCondition, body: elseIfBody});
-        }
-        
-        if (this.match(TokenType.ELSE)) {
-            elseBranch = [];
-            while (!this.match(TokenType.END_IF)) {
-                elseBranch.push(this.parseStatement());
-            }
-        }
-        
-        this.consume(TokenType.END_IF);
-        return new IfStatement(condition, thenBranch, elseIfBranches, elseBranch);
+  }
+
+  private parseIfStatement(): IfStatement {
+    this.consume(TokenType.LEFT_PAREN);
+    const condition = this.parseExpression();
+    this.consume(TokenType.RIGHT_PAREN);
+    this.consume(TokenType.THEN);
+
+    const thenBranch: Statement[] = [];
+    while (!this.match(TokenType.ELSE, TokenType.ELSIF, TokenType.END_IF)) {
+      thenBranch.push(this.parseStatement());
     }
-    
-    private parseForStatement(): ForStatement {
-        const counterVar = this.consume(TokenType.IDENTIFIER).value;
-        this.consume(TokenType.ASSIGN);
-        const startValue = this.parseExpression();
-        this.consume(TokenType.TO);
-        const endValue = this.parseExpression();
-        
-        let stepValue: Expression | undefined;
-        if (this.match(TokenType.BY)) {
-            stepValue = this.parseExpression();
-        }
-        
-        this.consume(TokenType.DO);
-        
-        const body: Statement[] = [];
-        while (!this.match(TokenType.END_FOR)) {
-            body.push(this.parseStatement());
-        }
-        this.consume(TokenType.END_FOR);
-        
-        return new ForStatement(counterVar, startValue, endValue, stepValue, body);
+
+    const elseIfBranches: Array<{ condition: Expression; body: Statement[] }> = [];
+    let elseBranch: Statement[] | undefined;
+
+    while (this.match(TokenType.ELSIF)) {
+      this.consume(TokenType.LEFT_PAREN);
+      const elseIfCondition = this.parseExpression();
+      this.consume(TokenType.RIGHT_PAREN);
+      this.consume(TokenType.THEN);
+
+      const elseIfBody: Statement[] = [];
+      while (!this.match(TokenType.ELSE, TokenType.ELSIF, TokenType.END_IF)) {
+        elseIfBody.push(this.parseStatement());
+      }
+      elseIfBranches.push({ condition: elseIfCondition, body: elseIfBody });
     }
-    
-    // 表达式解析 - 处理运算符优先级
-    private parseExpression(): Expression {
-        return this.parseAssignment();
+
+    if (this.match(TokenType.ELSE)) {
+      elseBranch = [];
+      while (!this.match(TokenType.END_IF)) {
+        elseBranch.push(this.parseStatement());
+      }
     }
-    
-    private parseAssignment(): Expression {
-        const left = this.parseLogicalOr();
-        if (this.match(TokenType.ASSIGN)) {
-            const value = this.parseAssignment();
-            return new Assignment(left as VariableRef, value);
-        }
-        return left;
+
+    this.consume(TokenType.END_IF);
+    return new IfStatement(condition, thenBranch, elseIfBranches, elseBranch);
+  }
+
+  private parseForStatement(): ForStatement {
+    const counterVar = this.consume(TokenType.IDENTIFIER).value;
+    this.consume(TokenType.ASSIGN);
+    const startValue = this.parseExpression();
+    this.consume(TokenType.TO);
+    const endValue = this.parseExpression();
+
+    let stepValue: Expression | undefined;
+    if (this.match(TokenType.BY)) {
+      stepValue = this.parseExpression();
     }
-    
-    private parseLogicalOr(): Expression {
-        let left = this.parseLogicalAnd();
-        while (this.match(TokenType.OR, TokenType.XOR)) {
-            const op = this.previous().value;
-            const right = this.parseLogicalAnd();
-            left = new BinaryOp(op, left, right);
-        }
-        return left;
+
+    this.consume(TokenType.DO);
+
+    const body: Statement[] = [];
+    while (!this.match(TokenType.END_FOR)) {
+      body.push(this.parseStatement());
     }
-    
-    private parseLogicalAnd(): Expression {
-        let left = this.parseRelational();
-        while (this.match(TokenType.AND)) {
-            const op = this.previous().value;
-            const right = this.parseRelational();
-            left = new BinaryOp('AND', left, right);
-        }
-        return left;
+    this.consume(TokenType.END_FOR);
+
+    return new ForStatement(counterVar, startValue, endValue, stepValue, body);
+  }
+
+  // 表达式解析 - 处理运算符优先级
+  private parseExpression(): Expression {
+    return this.parseAssignment();
+  }
+
+  private parseAssignment(): Expression {
+    const left = this.parseLogicalOr();
+    if (this.match(TokenType.ASSIGN)) {
+      const value = this.parseAssignment();
+      return new Assignment(left as VariableRef, value);
     }
-    
-    private parseRelational(): Expression {
-        let left = this.parseAdditive();
-        if (this.match(TokenType.EQ, TokenType.NE, TokenType.LT, 
-                       TokenType.GT, TokenType.LE, TokenType.GE)) {
-            const op = this.previous().value;
-            const right = this.parseAdditive();
-            left = new BinaryOp(op, left, right);
-        }
-        return left;
+    return left;
+  }
+
+  private parseLogicalOr(): Expression {
+    let left = this.parseLogicalAnd();
+    while (this.match(TokenType.OR, TokenType.XOR)) {
+      const op = this.previous().value;
+      const right = this.parseLogicalAnd();
+      left = new BinaryOp(op, left, right);
     }
-    
-    private parseAdditive(): Expression {
-        let left = this.parseMultiplicative();
-        while (this.match(TokenType.PLUS, TokenType.MINUS)) {
-            const op = this.previous().value;
-            const right = this.parseMultiplicative();
-            left = new BinaryOp(op, left, right);
-        }
-        return left;
+    return left;
+  }
+
+  private parseLogicalAnd(): Expression {
+    let left = this.parseRelational();
+    while (this.match(TokenType.AND)) {
+      const op = this.previous().value;
+      const right = this.parseRelational();
+      left = new BinaryOp('AND', left, right);
     }
-    
-    private parseMultiplicative(): Expression {
-        let left = this.parseUnary();
-        while (this.match(TokenType.MULT, TokenType.DIV, TokenType.MOD)) {
-            const op = this.previous().value;
-            const right = this.parseUnary();
-            left = new BinaryOp(op, left, right);
-        }
-        return left;
+    return left;
+  }
+
+  private parseRelational(): Expression {
+    let left = this.parseAdditive();
+    if (
+      this.match(TokenType.EQ, TokenType.NE, TokenType.LT, TokenType.GT, TokenType.LE, TokenType.GE)
+    ) {
+      const op = this.previous().value;
+      const right = this.parseAdditive();
+      left = new BinaryOp(op, left, right);
     }
-    
-    private parseUnary(): Expression {
-        if (this.match(TokenType.NOT, TokenType.MINUS)) {
-            const op = this.previous().value;
-            const operand = this.parseUnary();
-            return new UnaryOp(op, operand);
-        }
-        return this.parsePrimary();
+    return left;
+  }
+
+  private parseAdditive(): Expression {
+    let left = this.parseMultiplicative();
+    while (this.match(TokenType.PLUS, TokenType.MINUS)) {
+      const op = this.previous().value;
+      const right = this.parseMultiplicative();
+      left = new BinaryOp(op, left, right);
     }
-    
-    private parsePrimary(): Expression {
-        if (this.match(TokenType.NUMBER)) {
-            return new Literal(this.previous().numericValue, 
-                             this.inferNumericType());
-        }
-        if (this.match(TokenType.STRING)) {
-            return new Literal(this.previous().stringValue, DataType.STRING);
-        }
-        if (this.match(TokenType.TRUE, TokenType.FALSE)) {
-            return new Literal(this.previous().value === 'TRUE', 
-                             DataType.BOOL);
-        }
-        if (this.match(TokenType.IDENTIFIER)) {
-            return this.parsePostfixExpression(
-                new VariableRef(this.previous().value));
-        }
-        if (this.match(TokenType.LEFT_PAREN)) {
-            const expr = this.parseExpression();
-            this.consume(TokenType.RIGHT_PAREN);
-            return expr;
-        }
-        throw new SyntaxError(`Unexpected token at ${this.currentToken}`);
+    return left;
+  }
+
+  private parseMultiplicative(): Expression {
+    let left = this.parseUnary();
+    while (this.match(TokenType.MULT, TokenType.DIV, TokenType.MOD)) {
+      const op = this.previous().value;
+      const right = this.parseUnary();
+      left = new BinaryOp(op, left, right);
     }
-    
-    private parsePostfixExpression(expr: Expression): Expression {
-        while (this.match(TokenType.LEFT_PAREN, TokenType.DOT, 
-                         TokenType.LEFT_BRACKET)) {
-            if (this.match(TokenType.LEFT_PAREN)) {
-                expr = this.parseFunctionCall(expr);
-            } else if (this.match(TokenType.DOT)) {
-                expr = this.parseMemberAccess(expr);
-            } else if (this.match(TokenType.LEFT_BRACKET)) {
-                expr = this.parseArrayAccess(expr);
-            }
-        }
-        return expr;
+    return left;
+  }
+
+  private parseUnary(): Expression {
+    if (this.match(TokenType.NOT, TokenType.MINUS)) {
+      const op = this.previous().value;
+      const operand = this.parseUnary();
+      return new UnaryOp(op, operand);
     }
-    
-    private parseFunctionCall(func: Expression): Expression {
-        const args: Expression[] = [];
-        if (!this.match(TokenType.RIGHT_PAREN)) {
-            do {
-                args.push(this.parseExpression());
-            } while (this.match(TokenType.COMMA));
-            this.consume(TokenType.RIGHT_PAREN);
-        }
-        return new FunctionCall(
-            (func as VariableRef).variableName, args);
+    return this.parsePrimary();
+  }
+
+  private parsePrimary(): Expression {
+    if (this.match(TokenType.NUMBER)) {
+      return new Literal(this.previous().numericValue, this.inferNumericType());
     }
+    if (this.match(TokenType.STRING)) {
+      return new Literal(this.previous().stringValue, DataType.STRING);
+    }
+    if (this.match(TokenType.TRUE, TokenType.FALSE)) {
+      return new Literal(this.previous().value === 'TRUE', DataType.BOOL);
+    }
+    if (this.match(TokenType.IDENTIFIER)) {
+      return this.parsePostfixExpression(new VariableRef(this.previous().value));
+    }
+    if (this.match(TokenType.LEFT_PAREN)) {
+      const expr = this.parseExpression();
+      this.consume(TokenType.RIGHT_PAREN);
+      return expr;
+    }
+    throw new SyntaxError(`Unexpected token at ${this.currentToken}`);
+  }
+
+  private parsePostfixExpression(expr: Expression): Expression {
+    while (this.match(TokenType.LEFT_PAREN, TokenType.DOT, TokenType.LEFT_BRACKET)) {
+      if (this.match(TokenType.LEFT_PAREN)) {
+        expr = this.parseFunctionCall(expr);
+      } else if (this.match(TokenType.DOT)) {
+        expr = this.parseMemberAccess(expr);
+      } else if (this.match(TokenType.LEFT_BRACKET)) {
+        expr = this.parseArrayAccess(expr);
+      }
+    }
+    return expr;
+  }
+
+  private parseFunctionCall(func: Expression): Expression {
+    const args: Expression[] = [];
+    if (!this.match(TokenType.RIGHT_PAREN)) {
+      do {
+        args.push(this.parseExpression());
+      } while (this.match(TokenType.COMMA));
+      this.consume(TokenType.RIGHT_PAREN);
+    }
+    return new FunctionCall((func as VariableRef).variableName, args);
+  }
 }
 ```
 
@@ -806,145 +856,143 @@ class SCLParser {
 
 ```typescript
 class SiemensSCLExporter {
-    private options: {
-        useSiemensKeywords: boolean;
-        includeAddressComments: boolean;
-        generateDocumentation: boolean;
-    };
-    
-    public export(program: Program): string {
-        const header = this.generateHeader(program);
-        const interfaceSection = this.generateInterface(program);
-        const body = this.generateBody(program);
-        const footer = this.generateFooter(program);
-        
-        return [header, interfaceSection, body, footer]
-            .filter(s => s.length > 0)
-            .join('\n\n');
-    }
-    
-    private generateHeader(program: Program): string {
-        const pouKeyword = program.pouType === 'functionBlock' ? 'FUNCTION_BLOCK' :
-                          program.pouType === 'function' ? 'FUNCTION' : 'PROGRAM';
-                          
-        return `// ${'='.repeat(60)}
+  private options: {
+    useSiemensKeywords: boolean;
+    includeAddressComments: boolean;
+    generateDocumentation: boolean;
+  };
+
+  public export(program: Program): string {
+    const header = this.generateHeader(program);
+    const interfaceSection = this.generateInterface(program);
+    const body = this.generateBody(program);
+    const footer = this.generateFooter(program);
+
+    return [header, interfaceSection, body, footer].filter(s => s.length > 0).join('\n\n');
+  }
+
+  private generateHeader(program: Program): string {
+    const pouKeyword =
+      program.pouType === 'functionBlock'
+        ? 'FUNCTION_BLOCK'
+        : program.pouType === 'function'
+          ? 'FUNCTION'
+          : 'PROGRAM';
+
+    return `// ${'='.repeat(60)}
 // Program: ${program.name}
 // Type: ${program.pouType}
 // Generated: ${new Date().toISOString()}
 // ${'='.repeat(60)}
 
 ${pouKeyword} ${program.name}`;
+  }
+
+  private generateInterface(program: Program): string {
+    const sections: string[] = [];
+
+    if (program.variables.inputVars.length > 0) {
+      sections.push(this.generateVariableSection('VAR_INPUT', program.variables.inputVars));
     }
-    
-    private generateInterface(program: Program): string {
-        const sections: string[] = [];
-        
-        if (program.variables.inputVars.length > 0) {
-            sections.push(this.generateVariableSection(
-                'VAR_INPUT', program.variables.inputVars));
-        }
-        if (program.variables.outputVars.length > 0) {
-            sections.push(this.generateVariableSection(
-                'VAR_OUTPUT', program.variables.outputVars));
-        }
-        if (program.variables.inOutVars.length > 0) {
-            sections.push(this.generateVariableSection(
-                'VAR_IN_OUT', program.variables.inOutVars));
-        }
-        if (program.variables.localVars.length > 0) {
-            sections.push(this.generateVariableSection(
-                'VAR', program.variables.localVars));
-        }
-        
-        return sections.join('\n');
+    if (program.variables.outputVars.length > 0) {
+      sections.push(this.generateVariableSection('VAR_OUTPUT', program.variables.outputVars));
     }
-    
-    private generateVariableSection(
-        keyword: string, 
-        variables: VariableDeclaration[]
-    ): string {
-        const lines = [keyword];
-        
-        for (const v of variables) {
-            const typeStr = this.mapDataType(v.dataType);
-            let line = `    ${v.name} : ${typeStr}`;
-            
-            if (v.initializer) {
-                line += ` := ${this.generateExpression(v.initializer)}`;
-            }
-            if (v.address && this.options.includeAddressComments) {
-                line += ` // ${v.address}`;
-            }
-            lines.push(line);
-        }
-        
-        lines.push('END_VAR');
-        return lines.join('\n');
+    if (program.variables.inOutVars.length > 0) {
+      sections.push(this.generateVariableSection('VAR_IN_OUT', program.variables.inOutVars));
     }
-    
-    private generateBody(program: Program): string {
-        const lines = ['BEGIN'];
-        for (const stmt of program.body) {
-            lines.push(this.generateStatement(stmt, 1));
-        }
-        const endKeyword = program.pouType === 'functionBlock' ? 'FUNCTION_BLOCK' :
-                          program.pouType === 'function' ? 'FUNCTION' : 'PROGRAM';
-        lines.push(`END_${endKeyword}`);
-        return lines.join('\n');
+    if (program.variables.localVars.length > 0) {
+      sections.push(this.generateVariableSection('VAR', program.variables.localVars));
     }
-    
-    private generateStatement(stmt: Statement, indentLevel: number): string {
-        const indent = '    '.repeat(indentLevel);
-        
-        if (stmt instanceof Assignment) {
-            const target = this.generateExpression(stmt.target);
-            const value = this.generateExpression(stmt.value);
-            return `${indent}${target} := ${value};`;
-        }
-        
-        if (stmt instanceof IfStatement) {
-            const lines = [
-                `${indent}IF ${this.generateExpression(stmt.condition)} THEN`
-            ];
-            for (const thenStmt of stmt.thenBranch) {
-                lines.push(this.generateStatement(thenStmt, indentLevel + 1));
-            }
-            if (stmt.elseIfBranches) {
-                for (const elseif of stmt.elseIfBranches) {
-                    lines.push(`${indent}ELSIF ${this.generateExpression(elseif.condition)} THEN`);
-                    for (const elseifStmt of elseif.body) {
-                        lines.push(this.generateStatement(elseifStmt, indentLevel + 1));
-                    }
-                }
-            }
-            if (stmt.elseBranch) {
-                lines.push(`${indent}ELSE`);
-                for (const elseStmt of stmt.elseBranch) {
-                    lines.push(this.generateStatement(elseStmt, indentLevel + 1));
-                }
-            }
-            lines.push(`${indent}END_IF;`);
-            return lines.join('\n');
-        }
-        
-        if (stmt instanceof ForStatement) {
-            let header = `${indent}FOR ${stmt.counterVar} := ` +
-                `${this.generateExpression(stmt.startValue)} TO ` +
-                `${this.generateExpression(stmt.endValue)}`;
-            if (stmt.stepValue) {
-                header += ` BY ${this.generateExpression(stmt.stepValue)}`;
-            }
-            header += ' DO';
-            const lines = [header];
-            for (const forStmt of stmt.body) {
-                lines.push(this.generateStatement(forStmt, indentLevel + 1));
-            }
-            lines.push(`${indent}END_FOR;`);
-            return lines.join('\n');
-        }
-        
-        return '';
+
+    return sections.join('\n');
+  }
+
+  private generateVariableSection(keyword: string, variables: VariableDeclaration[]): string {
+    const lines = [keyword];
+
+    for (const v of variables) {
+      const typeStr = this.mapDataType(v.dataType);
+      let line = `    ${v.name} : ${typeStr}`;
+
+      if (v.initializer) {
+        line += ` := ${this.generateExpression(v.initializer)}`;
+      }
+      if (v.address && this.options.includeAddressComments) {
+        line += ` // ${v.address}`;
+      }
+      lines.push(line);
     }
+
+    lines.push('END_VAR');
+    return lines.join('\n');
+  }
+
+  private generateBody(program: Program): string {
+    const lines = ['BEGIN'];
+    for (const stmt of program.body) {
+      lines.push(this.generateStatement(stmt, 1));
+    }
+    const endKeyword =
+      program.pouType === 'functionBlock'
+        ? 'FUNCTION_BLOCK'
+        : program.pouType === 'function'
+          ? 'FUNCTION'
+          : 'PROGRAM';
+    lines.push(`END_${endKeyword}`);
+    return lines.join('\n');
+  }
+
+  private generateStatement(stmt: Statement, indentLevel: number): string {
+    const indent = '    '.repeat(indentLevel);
+
+    if (stmt instanceof Assignment) {
+      const target = this.generateExpression(stmt.target);
+      const value = this.generateExpression(stmt.value);
+      return `${indent}${target} := ${value};`;
+    }
+
+    if (stmt instanceof IfStatement) {
+      const lines = [`${indent}IF ${this.generateExpression(stmt.condition)} THEN`];
+      for (const thenStmt of stmt.thenBranch) {
+        lines.push(this.generateStatement(thenStmt, indentLevel + 1));
+      }
+      if (stmt.elseIfBranches) {
+        for (const elseif of stmt.elseIfBranches) {
+          lines.push(`${indent}ELSIF ${this.generateExpression(elseif.condition)} THEN`);
+          for (const elseifStmt of elseif.body) {
+            lines.push(this.generateStatement(elseifStmt, indentLevel + 1));
+          }
+        }
+      }
+      if (stmt.elseBranch) {
+        lines.push(`${indent}ELSE`);
+        for (const elseStmt of stmt.elseBranch) {
+          lines.push(this.generateStatement(elseStmt, indentLevel + 1));
+        }
+      }
+      lines.push(`${indent}END_IF;`);
+      return lines.join('\n');
+    }
+
+    if (stmt instanceof ForStatement) {
+      let header =
+        `${indent}FOR ${stmt.counterVar} := ` +
+        `${this.generateExpression(stmt.startValue)} TO ` +
+        `${this.generateExpression(stmt.endValue)}`;
+      if (stmt.stepValue) {
+        header += ` BY ${this.generateExpression(stmt.stepValue)}`;
+      }
+      header += ' DO';
+      const lines = [header];
+      for (const forStmt of stmt.body) {
+        lines.push(this.generateStatement(forStmt, indentLevel + 1));
+      }
+      lines.push(`${indent}END_FOR;`);
+      return lines.join('\n');
+    }
+
+    return '';
+  }
 }
 ```
 
@@ -990,105 +1038,103 @@ ${pouKeyword} ${program.name}`;
 
 ```typescript
 interface InstructionMapping {
-    sourcePlatform: string;
-    targetPlatform: string;
-    mappings: {
-        [sourceInstruction: string]: {
-            targetInstruction: string;
-            parameterMapping?: ParameterMapping[];
-            remarks?: string;
-        };
+  sourcePlatform: string;
+  targetPlatform: string;
+  mappings: {
+    [sourceInstruction: string]: {
+      targetInstruction: string;
+      parameterMapping?: ParameterMapping[];
+      remarks?: string;
     };
+  };
 }
 
 const siemensToIECMapping: InstructionMapping = {
-    sourcePlatform: 'Siemens SCL',
-    targetPlatform: 'IEC 61131-3',
-    mappings: {
-        // 标准定时器 - 直接映射
-        'TON': {
-            targetInstruction: 'TON',
-            parameterMapping: [
-                { source: 'IN', target: 'IN' },
-                { source: 'PT', target: 'PT' },
-                { source: 'Q', target: 'Q' },
-                { source: 'ET', target: 'ET' }
-            ]
-        },
-        'TOF': {
-            targetInstruction: 'TOF',
-            parameterMapping: [
-                { source: 'IN', target: 'IN' },
-                { source: 'PT', target: 'PT' },
-                { source: 'Q', target: 'Q' },
-                { source: 'ET', target: 'ET' }
-            ]
-        },
-        'TP': {
-            targetInstruction: 'TP',
-            parameterMapping: [
-                { source: 'IN', target: 'IN' },
-                { source: 'PT', target: 'PT' },
-                { source: 'Q', target: 'Q' },
-                { source: 'ET', target: 'ET' }
-            ]
-        },
-        // 计数器 - 直接映射
-        'CTU': {
-            targetInstruction: 'CTU',
-            parameterMapping: [
-                { source: 'CU', target: 'CU' },
-                { source: 'R', target: 'R' },
-                { source: 'PV', target: 'PV' },
-                { source: 'Q', target: 'Q' },
-                { source: 'CV', target: 'CV' }
-            ]
-        },
-        'CTD': {
-            targetInstruction: 'CTD',
-            parameterMapping: [
-                { source: 'CD', target: 'CD' },
-                { source: 'LD', target: 'LD' },
-                { source: 'PV', target: 'PV' },
-                { source: 'Q', target: 'Q' },
-                { source: 'CV', target: 'CV' }
-            ]
-        },
-        'CTUD': {
-            targetInstruction: 'CTUD',
-            parameterMapping: [
-                { source: 'CU', target: 'CU' },
-                { source: 'CD', target: 'CD' },
-                { source: 'R', target: 'R' },
-                { source: 'LD', target: 'LD' },
-                { source: 'PV', target: 'PV' },
-                { source: 'QU', target: 'QU' },
-                { source: 'QD', target: 'QD' },
-                { source: 'CV', target: 'CV' }
-            ]
-        },
-        // 西门子特有功能 - 需要特殊处理
-        'S7_Time': {
-            targetInstruction: 'TIME',
-            parameterMapping: [],
-            remarks: 'Siemens S7_TIME类型直接映射为IEC TIME类型'
-        },
-        // 字符串操作函数
-        'LEN': {
-            targetInstruction: 'LEN',
-            parameterMapping: [
-                { source: 'IN', target: 'IN' }
-            ]
-        },
-        'MID': {
-            targetInstruction: 'MID',
-            parameterMapping: [
-                { source: 'IN', target: 'IN' },
-                { source: 'L', target: 'L' },
-                { source: 'P', target: 'P' }
-            ]
-        }
-    }
+  sourcePlatform: 'Siemens SCL',
+  targetPlatform: 'IEC 61131-3',
+  mappings: {
+    // 标准定时器 - 直接映射
+    TON: {
+      targetInstruction: 'TON',
+      parameterMapping: [
+        { source: 'IN', target: 'IN' },
+        { source: 'PT', target: 'PT' },
+        { source: 'Q', target: 'Q' },
+        { source: 'ET', target: 'ET' },
+      ],
+    },
+    TOF: {
+      targetInstruction: 'TOF',
+      parameterMapping: [
+        { source: 'IN', target: 'IN' },
+        { source: 'PT', target: 'PT' },
+        { source: 'Q', target: 'Q' },
+        { source: 'ET', target: 'ET' },
+      ],
+    },
+    TP: {
+      targetInstruction: 'TP',
+      parameterMapping: [
+        { source: 'IN', target: 'IN' },
+        { source: 'PT', target: 'PT' },
+        { source: 'Q', target: 'Q' },
+        { source: 'ET', target: 'ET' },
+      ],
+    },
+    // 计数器 - 直接映射
+    CTU: {
+      targetInstruction: 'CTU',
+      parameterMapping: [
+        { source: 'CU', target: 'CU' },
+        { source: 'R', target: 'R' },
+        { source: 'PV', target: 'PV' },
+        { source: 'Q', target: 'Q' },
+        { source: 'CV', target: 'CV' },
+      ],
+    },
+    CTD: {
+      targetInstruction: 'CTD',
+      parameterMapping: [
+        { source: 'CD', target: 'CD' },
+        { source: 'LD', target: 'LD' },
+        { source: 'PV', target: 'PV' },
+        { source: 'Q', target: 'Q' },
+        { source: 'CV', target: 'CV' },
+      ],
+    },
+    CTUD: {
+      targetInstruction: 'CTUD',
+      parameterMapping: [
+        { source: 'CU', target: 'CU' },
+        { source: 'CD', target: 'CD' },
+        { source: 'R', target: 'R' },
+        { source: 'LD', target: 'LD' },
+        { source: 'PV', target: 'PV' },
+        { source: 'QU', target: 'QU' },
+        { source: 'QD', target: 'QD' },
+        { source: 'CV', target: 'CV' },
+      ],
+    },
+    // 西门子特有功能 - 需要特殊处理
+    S7_Time: {
+      targetInstruction: 'TIME',
+      parameterMapping: [],
+      remarks: 'Siemens S7_TIME类型直接映射为IEC TIME类型',
+    },
+    // 字符串操作函数
+    LEN: {
+      targetInstruction: 'LEN',
+      parameterMapping: [{ source: 'IN', target: 'IN' }],
+    },
+    MID: {
+      targetInstruction: 'MID',
+      parameterMapping: [
+        { source: 'IN', target: 'IN' },
+        { source: 'L', target: 'L' },
+        { source: 'P', target: 'P' },
+      ],
+    },
+  },
 };
 ```
 
@@ -1103,651 +1149,637 @@ const siemensToIECMapping: InstructionMapping = {
 #### 4.1.1 解析器主类设计
 
 ```typescript
+import { ASTNode, Expression, FunctionBlock, Program, Statement, VariableDeclaration } from './ast';
 import { Lexer, Token, TokenType } from './lexer';
-import { ASTNode, Program, FunctionBlock, Statement, 
-         Expression, VariableDeclaration } from './ast';
 
 interface ParseOptions {
-    enableStrictMode: boolean;
-    collectComments: boolean;
-    maxParseDepth: number;
+  enableStrictMode: boolean;
+  collectComments: boolean;
+  maxParseDepth: number;
 }
 
 interface ParseResult {
-    ast: Program;
-    diagnostics: ParseDiagnostic[];
-    tokens: Token[];
+  ast: Program;
+  diagnostics: ParseDiagnostic[];
+  tokens: Token[];
 }
 
 interface ParseDiagnostic {
-    severity: 'error' | 'warning' | 'info';
-    message: string;
-    location: SourceLocation;
-    code: string;
+  severity: 'error' | 'warning' | 'info';
+  message: string;
+  location: SourceLocation;
+  code: string;
 }
 
 class SCLParser {
-    private lexer: Lexer;
-    private tokens: Token[] = [];
-    private currentIndex: number = 0;
-    private options: ParseOptions;
-    private diagnostics: ParseDiagnostic[] = [];
-    
-    constructor(options?: Partial<ParseOptions>) {
-        this.options = {
-            enableStrictMode: options?.enableStrictMode ?? false,
-            collectComments: options?.collectComments ?? false,
-            maxParseDepth: options?.maxParseDepth ?? 1000
-        };
-        this.lexer = new Lexer();
+  private lexer: Lexer;
+  private tokens: Token[] = [];
+  private currentIndex: number = 0;
+  private options: ParseOptions;
+  private diagnostics: ParseDiagnostic[] = [];
+
+  constructor(options?: Partial<ParseOptions>) {
+    this.options = {
+      enableStrictMode: options?.enableStrictMode ?? false,
+      collectComments: options?.collectComments ?? false,
+      maxParseDepth: options?.maxParseDepth ?? 1000,
+    };
+    this.lexer = new Lexer();
+  }
+
+  public parse(sourceCode: string): ParseResult {
+    // 第一阶段：词法分析
+    this.tokens = this.lexer.tokenize(sourceCode);
+
+    // 第二阶段：语法分析
+    const ast = this.parseProgram();
+
+    // 第三阶段：语义分析
+    this.performSemanticAnalysis(ast);
+
+    return {
+      ast,
+      diagnostics: this.diagnostics,
+      tokens: this.tokens,
+    };
+  }
+
+  private parseProgram(): Program {
+    // 解析程序头部信息
+    let name = 'UnnamedProgram';
+    let pouType: 'program' | 'functionBlock' | 'function' = 'program';
+
+    if (this.match(TokenType.FUNCTION_BLOCK)) {
+      pouType = 'functionBlock';
+      this.consume(TokenType.IDENTIFIER);
+      name = this.previous().value;
+    } else if (this.match(TokenType.FUNCTION)) {
+      pouType = 'function';
+      this.consume(TokenType.IDENTIFIER);
+      name = this.previous().value;
+    } else if (this.match(TokenType.PROGRAM)) {
+      pouType = 'program';
+      this.consume(TokenType.IDENTIFIER);
+      name = this.previous().value;
     }
-    
-    public parse(sourceCode: string): ParseResult {
-        // 第一阶段：词法分析
-        this.tokens = this.lexer.tokenize(sourceCode);
-        
-        // 第二阶段：语法分析
-        const ast = this.parseProgram();
-        
-        // 第三阶段：语义分析
-        this.performSemanticAnalysis(ast);
-        
-        return {
-            ast,
-            diagnostics: this.diagnostics,
-            tokens: this.tokens
-        };
+
+    // 解析变量声明区域
+    const inputVars: VariableDeclaration[] = [];
+    const outputVars: VariableDeclaration[] = [];
+    const inOutVars: VariableDeclaration[] = [];
+    const localVars: VariableDeclaration[] = [];
+    const tempVars: VariableDeclaration[] = [];
+
+    this.parseVariableSections(inputVars, outputVars, inOutVars, localVars, tempVars);
+
+    // 解析函数体
+    const body: Statement[] = [];
+    this.consume(TokenType.BEGIN);
+
+    while (
+      !this.match(TokenType.END_FUNCTION_BLOCK, TokenType.END_FUNCTION, TokenType.END_PROGRAM)
+    ) {
+      body.push(this.parseStatement());
     }
-    
-    private parseProgram(): Program {
-        // 解析程序头部信息
-        let name = 'UnnamedProgram';
-        let pouType: 'program' | 'functionBlock' | 'function' = 'program';
-        
-        if (this.match(TokenType.FUNCTION_BLOCK)) {
-            pouType = 'functionBlock';
-            this.consume(TokenType.IDENTIFIER);
-            name = this.previous().value;
-        } else if (this.match(TokenType.FUNCTION)) {
-            pouType = 'function';
-            this.consume(TokenType.IDENTIFIER);
-            name = this.previous().value;
-        } else if (this.match(TokenType.PROGRAM)) {
-            pouType = 'program';
-            this.consume(TokenType.IDENTIFIER);
-            name = this.previous().value;
+
+    this.consumeEndKeyword();
+
+    return new Program(name, pouType, {
+      inputVars,
+      outputVars,
+      inOutVars,
+      localVars,
+      tempVars,
+      body,
+    });
+  }
+
+  private parseVariableSections(
+    inputVars: VariableDeclaration[],
+    outputVars: VariableDeclaration[],
+    inOutVars: VariableDeclaration[],
+    localVars: VariableDeclaration[],
+    tempVars: VariableDeclaration[]
+  ): void {
+    while (
+      this.match(
+        TokenType.VAR,
+        TokenType.VAR_INPUT,
+        TokenType.VAR_OUTPUT,
+        TokenType.VAR_IN_OUT,
+        TokenType.VAR_TEMP,
+        TokenType.VAR_CONSTANT
+      )
+    ) {
+      const sectionType = this.previous().type;
+      const isRetain = this.match(TokenType.RETAIN);
+      const isConstant = this.match(TokenType.CONSTANT);
+
+      const targetArray = this.selectVariableArray(
+        sectionType,
+        isRetain,
+        isConstant,
+        inputVars,
+        outputVars,
+        inOutVars,
+        localVars,
+        tempVars
+      );
+
+      this.consume(TokenType.COLON);
+
+      while (!this.match(TokenType.END_VAR)) {
+        const varDecl = this.parseVariableDeclaration();
+        if (varDecl) {
+          targetArray.push(varDecl);
         }
-        
-        // 解析变量声明区域
-        const inputVars: VariableDeclaration[] = [];
-        const outputVars: VariableDeclaration[] = [];
-        const inOutVars: VariableDeclaration[] = [];
-        const localVars: VariableDeclaration[] = [];
-        const tempVars: VariableDeclaration[] = [];
-        
-        this.parseVariableSections(
-            inputVars, outputVars, inOutVars, localVars, tempVars);
-        
-        // 解析函数体
-        const body: Statement[] = [];
-        this.consume(TokenType.BEGIN);
-        
-        while (!this.match(TokenType.END_FUNCTION_BLOCK, 
-                          TokenType.END_FUNCTION, 
-                          TokenType.END_PROGRAM)) {
-            body.push(this.parseStatement());
-        }
-        
-        this.consumeEndKeyword();
-        
-        return new Program(name, pouType, {
-            inputVars,
-            outputVars,
-            inOutVars,
-            localVars,
-            tempVars,
-            body
-        });
+      }
+
+      this.consume(TokenType.END_VAR);
     }
-    
-    private parseVariableSections(
-        inputVars: VariableDeclaration[],
-        outputVars: VariableDeclaration[],
-        inOutVars: VariableDeclaration[],
-        localVars: VariableDeclaration[],
-        tempVars: VariableDeclaration[]
-    ): void {
-        while (this.match(
-            TokenType.VAR, 
-            TokenType.VAR_INPUT, 
-            TokenType.VAR_OUTPUT, 
-            TokenType.VAR_IN_OUT,
-            TokenType.VAR_TEMP,
-            TokenType.VAR_CONSTANT
-        )) {
-            const sectionType = this.previous().type;
-            const isRetain = this.match(TokenType.RETAIN);
-            const isConstant = this.match(TokenType.CONSTANT);
-            
-            const targetArray = this.selectVariableArray(
-                sectionType, isRetain, isConstant,
-                inputVars, outputVars, inOutVars, localVars, tempVars
-            );
-            
-            this.consume(TokenType.COLON);
-            
-            while (!this.match(TokenType.END_VAR)) {
-                const varDecl = this.parseVariableDeclaration();
-                if (varDecl) {
-                    targetArray.push(varDecl);
-                }
-            }
-            
-            this.consume(TokenType.END_VAR);
-        }
+  }
+
+  private selectVariableArray(
+    sectionType: TokenType,
+    isRetain: boolean,
+    isConstant: boolean,
+    inputVars: VariableDeclaration[],
+    outputVars: VariableDeclaration[],
+    inOutVars: VariableDeclaration[],
+    localVars: VariableDeclaration[],
+    tempVars: VariableDeclaration[]
+  ): VariableDeclaration[] {
+    switch (sectionType) {
+      case TokenType.VAR_INPUT:
+        return inputVars;
+      case TokenType.VAR_OUTPUT:
+        return outputVars;
+      case TokenType.VAR_IN_OUT:
+        return inOutVars;
+      case TokenType.VAR_TEMP:
+        return tempVars;
+      default:
+        return localVars;
     }
-    
-    private selectVariableArray(
-        sectionType: TokenType,
-        isRetain: boolean,
-        isConstant: boolean,
-        inputVars: VariableDeclaration[],
-        outputVars: VariableDeclaration[],
-        inOutVars: VariableDeclaration[],
-        localVars: VariableDeclaration[],
-        tempVars: VariableDeclaration[]
-    ): VariableDeclaration[] {
-        switch (sectionType) {
-            case TokenType.VAR_INPUT:
-                return inputVars;
-            case TokenType.VAR_OUTPUT:
-                return outputVars;
-            case TokenType.VAR_IN_OUT:
-                return inOutVars;
-            case TokenType.VAR_TEMP:
-                return tempVars;
-            default:
-                return localVars;
-        }
+  }
+
+  private parseVariableDeclaration(): VariableDeclaration | null {
+    if (this.check(TokenType.END_VAR)) {
+      return null;
     }
-    
-    private parseVariableDeclaration(): VariableDeclaration | null {
-        if (this.check(TokenType.END_VAR)) {
-            return null;
-        }
-        
-        const name = this.consume(TokenType.IDENTIFIER).value;
-        this.consume(TokenType.COLON);
-        const dataType = this.parseDataType();
-        
-        let initializer: Expression | undefined;
-        if (this.match(TokenType.ASSIGN)) {
-initializer = this.parseExpression();
-        }
-        
-        this.consume(TokenType.SEMICOLON);
-        
-        return new VariableDeclaration(name, dataType, initializer);
+
+    const name = this.consume(TokenType.IDENTIFIER).value;
+    this.consume(TokenType.COLON);
+    const dataType = this.parseDataType();
+
+    let initializer: Expression | undefined;
+    if (this.match(TokenType.ASSIGN)) {
+      initializer = this.parseExpression();
     }
-    
-    private parseDataType(): DataType {
-        if (this.match(TokenType.IDENTIFIER)) {
-            const typeName = this.previous().value;
-            // 检查是否是数组类型
-            if (this.match(TokenType.LEFT_BRACKET)) {
-                return this.parseArrayType(typeName);
-            }
-            return new DataType(typeName);
-        }
-        throw new SyntaxError("Expected data type");
+
+    this.consume(TokenType.SEMICOLON);
+
+    return new VariableDeclaration(name, dataType, initializer);
+  }
+
+  private parseDataType(): DataType {
+    if (this.match(TokenType.IDENTIFIER)) {
+      const typeName = this.previous().value;
+      // 检查是否是数组类型
+      if (this.match(TokenType.LEFT_BRACKET)) {
+        return this.parseArrayType(typeName);
+      }
+      return new DataType(typeName);
     }
-    
-    private parseArrayType(baseTypeName: string): ArrayType {
-        const dimensions: Array<{lower: number; upper: number}> = [];
-        
-        while (this.match(TokenType.LEFT_BRACKET)) {
-            const lower = this.consume(TokenType.NUMBER).numericValue;
-            this.consume(TokenType.DOT, TokenType.DOT);
-            const upper = this.consume(TokenType.NUMBER).numericValue;
-            this.consume(TokenType.RIGHT_BRACKET);
-            dimensions.push({lower, upper});
-            
-            if (!this.match(TokenType.COMMA)) {
-                break;
-            }
-        }
-        
-        this.consume(TokenType.OF);
-        const elementType = this.parseDataType();
-        
-        return new ArrayType(baseTypeName, dimensions, elementType);
+    throw new SyntaxError('Expected data type');
+  }
+
+  private parseArrayType(baseTypeName: string): ArrayType {
+    const dimensions: Array<{ lower: number; upper: number }> = [];
+
+    while (this.match(TokenType.LEFT_BRACKET)) {
+      const lower = this.consume(TokenType.NUMBER).numericValue;
+      this.consume(TokenType.DOT, TokenType.DOT);
+      const upper = this.consume(TokenType.NUMBER).numericValue;
+      this.consume(TokenType.RIGHT_BRACKET);
+      dimensions.push({ lower, upper });
+
+      if (!this.match(TokenType.COMMA)) {
+        break;
+      }
     }
-    
-    private parseStatement(): Statement {
-        const startToken = this.currentToken;
-        
-        if (this.match(TokenType.IF)) {
-            return this.parseIfStatement();
-        } else if (this.match(TokenType.FOR)) {
-            return this.parseForStatement();
-        } else if (this.match(TokenType.WHILE)) {
-            return this.parseWhileStatement();
-        } else if (this.match(TokenType.REPEAT)) {
-            return this.parseRepeatStatement();
-        } else if (this.match(TokenType.CASE)) {
-            return this.parseCaseStatement();
-        } else if (this.match(TokenType.RETURN)) {
-            return this.parseReturnStatement();
-        } else if (this.match(TokenType.EXIT)) {
-            return this.parseExitStatement();
-        } else {
-            // 可能是赋值语句或表达式语句
-            const expr = this.parseExpression();
-            this.consume(TokenType.SEMICOLON);
-            return new ExpressionStatement(expr, 
-                this.getSourceLocation(startToken));
-        }
+
+    this.consume(TokenType.OF);
+    const elementType = this.parseDataType();
+
+    return new ArrayType(baseTypeName, dimensions, elementType);
+  }
+
+  private parseStatement(): Statement {
+    const startToken = this.currentToken;
+
+    if (this.match(TokenType.IF)) {
+      return this.parseIfStatement();
+    } else if (this.match(TokenType.FOR)) {
+      return this.parseForStatement();
+    } else if (this.match(TokenType.WHILE)) {
+      return this.parseWhileStatement();
+    } else if (this.match(TokenType.REPEAT)) {
+      return this.parseRepeatStatement();
+    } else if (this.match(TokenType.CASE)) {
+      return this.parseCaseStatement();
+    } else if (this.match(TokenType.RETURN)) {
+      return this.parseReturnStatement();
+    } else if (this.match(TokenType.EXIT)) {
+      return this.parseExitStatement();
+    } else {
+      // 可能是赋值语句或表达式语句
+      const expr = this.parseExpression();
+      this.consume(TokenType.SEMICOLON);
+      return new ExpressionStatement(expr, this.getSourceLocation(startToken));
     }
-    
-    private parseIfStatement(): IfStatement {
-        const startLocation = this.getSourceLocation(this.previousToken);
-        this.consume(TokenType.LEFT_PAREN);
-        const condition = this.parseExpression();
-        this.consume(TokenType.RIGHT_PAREN);
-        this.consume(TokenType.THEN);
-        
-        const thenBranch: Statement[] = [];
-        while (!this.match(TokenType.ELSE, 
-                          TokenType.ELSIF, 
-                          TokenType.END_IF)) {
-            thenBranch.push(this.parseStatement());
-        }
-        
-        const elseIfBranches: Array<{condition: Expression; 
-                                     body: Statement[]}> = [];
-        let elseBranch: Statement[] | undefined;
-        
-        while (this.match(TokenType.ELSIF)) {
-            this.consume(TokenType.LEFT_PAREN);
-            const elseIfCondition = this.parseExpression();
-            this.consume(TokenType.RIGHT_PAREN);
-            this.consume(TokenType.THEN);
-            
-            const elseIfBody: Statement[] = [];
-            while (!this.match(TokenType.ELSE, 
-                              TokenType.ELSIF, 
-                              TokenType.END_IF)) {
-                elseIfBody.push(this.parseStatement());
-            }
-            
-            elseIfBranches.push({
-                condition: elseIfCondition,
-                body: elseIfBody
-            });
-        }
-        
-        if (this.match(TokenType.ELSE)) {
-            elseBranch = [];
-            while (!this.match(TokenType.END_IF)) {
-                elseBranch.push(this.parseStatement());
-            }
-        }
-        
-        this.consume(TokenType.END_IF);
-        
-        return new IfStatement(
-            condition, thenBranch, elseIfBranches, elseBranch, 
-            startLocation
-        );
+  }
+
+  private parseIfStatement(): IfStatement {
+    const startLocation = this.getSourceLocation(this.previousToken);
+    this.consume(TokenType.LEFT_PAREN);
+    const condition = this.parseExpression();
+    this.consume(TokenType.RIGHT_PAREN);
+    this.consume(TokenType.THEN);
+
+    const thenBranch: Statement[] = [];
+    while (!this.match(TokenType.ELSE, TokenType.ELSIF, TokenType.END_IF)) {
+      thenBranch.push(this.parseStatement());
     }
-    
-    private parseForStatement(): ForStatement {
-        const startLocation = this.getSourceLocation(this.previousToken);
-        
-        const counterVar = this.consume(TokenType.IDENTIFIER).value;
-        this.consume(TokenType.ASSIGN);
-        const startValue = this.parseExpression();
-        this.consume(TokenType.TO);
-        const endValue = this.parseExpression();
-        
-        let stepValue: Expression | undefined;
-        if (this.match(TokenType.BY)) {
-            stepValue = this.parseExpression();
-        }
-        
-        this.consume(TokenType.DO);
-        
-        const body: Statement[] = [];
-        while (!this.match(TokenType.END_FOR)) {
-            body.push(this.parseStatement());
-        }
-        this.consume(TokenType.END_FOR);
-        
-        return new ForStatement(
-            counterVar, startValue, endValue, stepValue, body, 
-            startLocation
-        );
+
+    const elseIfBranches: Array<{ condition: Expression; body: Statement[] }> = [];
+    let elseBranch: Statement[] | undefined;
+
+    while (this.match(TokenType.ELSIF)) {
+      this.consume(TokenType.LEFT_PAREN);
+      const elseIfCondition = this.parseExpression();
+      this.consume(TokenType.RIGHT_PAREN);
+      this.consume(TokenType.THEN);
+
+      const elseIfBody: Statement[] = [];
+      while (!this.match(TokenType.ELSE, TokenType.ELSIF, TokenType.END_IF)) {
+        elseIfBody.push(this.parseStatement());
+      }
+
+      elseIfBranches.push({
+        condition: elseIfCondition,
+        body: elseIfBody,
+      });
     }
-    
-    private parseWhileStatement(): WhileStatement {
-        const startLocation = this.getSourceLocation(this.previousToken);
-        
-        this.consume(TokenType.LEFT_PAREN);
-        const condition = this.parseExpression();
-        this.consume(TokenType.RIGHT_PAREN);
-        this.consume(TokenType.DO);
-        
-        const body: Statement[] = [];
-        while (!this.match(TokenType.END_WHILE)) {
-            body.push(this.parseStatement());
-        }
-        this.consume(TokenType.END_WHILE);
-        
-        return new WhileStatement(condition, body, startLocation);
+
+    if (this.match(TokenType.ELSE)) {
+      elseBranch = [];
+      while (!this.match(TokenType.END_IF)) {
+        elseBranch.push(this.parseStatement());
+      }
     }
-    
-    private parseRepeatStatement(): RepeatStatement {
-        const startLocation = this.getSourceLocation(this.previousToken);
-        
-        const body: Statement[] = [];
-        while (!this.match(TokenType.UNTIL)) {
-            body.push(this.parseStatement());
-        }
-        
-        this.consume(TokenType.LEFT_PAREN);
-        const condition = this.parseExpression();
-        this.consume(TokenType.RIGHT_PAREN);
-        this.consume(TokenType.END_REPEAT);
-        
-        return new RepeatStatement(condition, body, startLocation);
+
+    this.consume(TokenType.END_IF);
+
+    return new IfStatement(condition, thenBranch, elseIfBranches, elseBranch, startLocation);
+  }
+
+  private parseForStatement(): ForStatement {
+    const startLocation = this.getSourceLocation(this.previousToken);
+
+    const counterVar = this.consume(TokenType.IDENTIFIER).value;
+    this.consume(TokenType.ASSIGN);
+    const startValue = this.parseExpression();
+    this.consume(TokenType.TO);
+    const endValue = this.parseExpression();
+
+    let stepValue: Expression | undefined;
+    if (this.match(TokenType.BY)) {
+      stepValue = this.parseExpression();
     }
-    
-    private parseCaseStatement(): CaseStatement {
-        const startLocation = this.getSourceLocation(this.previousToken);
-        
-        this.consume(TokenType.LEFT_PAREN);
-        const selector = this.parseExpression();
-        this.consume(TokenType.RIGHT_PAREN);
-        this.consume(TokenType.OF);
-        
-        const cases: Array<{values: Expression[]; body: Statement[]}> = [];
-        let defaultCase: Statement[] | undefined;
-        
+
+    this.consume(TokenType.DO);
+
+    const body: Statement[] = [];
+    while (!this.match(TokenType.END_FOR)) {
+      body.push(this.parseStatement());
+    }
+    this.consume(TokenType.END_FOR);
+
+    return new ForStatement(counterVar, startValue, endValue, stepValue, body, startLocation);
+  }
+
+  private parseWhileStatement(): WhileStatement {
+    const startLocation = this.getSourceLocation(this.previousToken);
+
+    this.consume(TokenType.LEFT_PAREN);
+    const condition = this.parseExpression();
+    this.consume(TokenType.RIGHT_PAREN);
+    this.consume(TokenType.DO);
+
+    const body: Statement[] = [];
+    while (!this.match(TokenType.END_WHILE)) {
+      body.push(this.parseStatement());
+    }
+    this.consume(TokenType.END_WHILE);
+
+    return new WhileStatement(condition, body, startLocation);
+  }
+
+  private parseRepeatStatement(): RepeatStatement {
+    const startLocation = this.getSourceLocation(this.previousToken);
+
+    const body: Statement[] = [];
+    while (!this.match(TokenType.UNTIL)) {
+      body.push(this.parseStatement());
+    }
+
+    this.consume(TokenType.LEFT_PAREN);
+    const condition = this.parseExpression();
+    this.consume(TokenType.RIGHT_PAREN);
+    this.consume(TokenType.END_REPEAT);
+
+    return new RepeatStatement(condition, body, startLocation);
+  }
+
+  private parseCaseStatement(): CaseStatement {
+    const startLocation = this.getSourceLocation(this.previousToken);
+
+    this.consume(TokenType.LEFT_PAREN);
+    const selector = this.parseExpression();
+    this.consume(TokenType.RIGHT_PAREN);
+    this.consume(TokenType.OF);
+
+    const cases: Array<{ values: Expression[]; body: Statement[] }> = [];
+    let defaultCase: Statement[] | undefined;
+
+    while (!this.match(TokenType.END_CASE)) {
+      if (this.match(TokenType.ELSE)) {
+        defaultCase = [];
         while (!this.match(TokenType.END_CASE)) {
-            if (this.match(TokenType.ELSE)) {
-                defaultCase = [];
-                while (!this.match(TokenType.END_CASE)) {
-                    defaultCase.push(this.parseStatement());
-                }
-            } else {
-                const caseValues = [this.parseCaseValue()];
-                while (this.match(TokenType.COMMA)) {
-                    caseValues.push(this.parseCaseValue());
-                }
-                this.consume(TokenType.COLON);
-                
-                const caseBody: Statement[] = [];
-                while (!this.match(TokenType.ELSE, TokenType.END_CASE) &&
-                       !this.match(TokenType.NUMBER, TokenType.IDENTIFIER) &&
-                       !this.check(TokenType.ELSE, TokenType.END_CASE)) {
-                    caseBody.push(this.parseStatement());
-                }
-                
-                cases.push({values: caseValues, body: caseBody});
-            }
+          defaultCase.push(this.parseStatement());
         }
-        
-        return new CaseStatement(selector, cases, defaultCase, startLocation);
-    }
-    
-    private parseCaseValue(): Expression {
-        if (this.match(TokenType.NUMBER)) {
-            return new Literal(this.previous().numericValue, 
-                             DataType.INT);
+      } else {
+        const caseValues = [this.parseCaseValue()];
+        while (this.match(TokenType.COMMA)) {
+          caseValues.push(this.parseCaseValue());
         }
-        return this.parseExpression();
-    }
-    
-    private parseReturnStatement(): ReturnStatement {
-        this.consume(TokenType.SEMICOLON);
-        return new ReturnStatement();
-    }
-    
-    private parseExitStatement(): ExitStatement {
-        this.consume(TokenType.SEMICOLON);
-        return new ExitStatement();
-    }
-    
-    private parseExpression(): Expression {
-        return this.parseAssignment();
-    }
-    
-    private parseAssignment(): Expression {
-        const left = this.parseLogicalOr();
-        if (this.match(TokenType.ASSIGN)) {
-            const value = this.parseAssignment();
-            if (left instanceof VariableRef) {
-                return new Assignment(left, value);
-            }
-            throw new SyntaxError("Assignment target must be a variable");
+        this.consume(TokenType.COLON);
+
+        const caseBody: Statement[] = [];
+        while (
+          !this.match(TokenType.ELSE, TokenType.END_CASE) &&
+          !this.match(TokenType.NUMBER, TokenType.IDENTIFIER) &&
+          !this.check(TokenType.ELSE, TokenType.END_CASE)
+        ) {
+          caseBody.push(this.parseStatement());
         }
-        return left;
+
+        cases.push({ values: caseValues, body: caseBody });
+      }
     }
-    
-    private parseLogicalOr(): Expression {
-        let left = this.parseLogicalAnd();
-        while (this.match(TokenType.OR, TokenType.XOR)) {
-            const op = this.previous().value;
-            const right = this.parseLogicalAnd();
-            left = new BinaryOp(op, left, right);
-        }
-        return left;
+
+    return new CaseStatement(selector, cases, defaultCase, startLocation);
+  }
+
+  private parseCaseValue(): Expression {
+    if (this.match(TokenType.NUMBER)) {
+      return new Literal(this.previous().numericValue, DataType.INT);
     }
-    
-    private parseLogicalAnd(): Expression {
-        let left = this.parseRelational();
-        while (this.match(TokenType.AND)) {
-            const op = this.previous().value;
-            const right = this.parseRelational();
-            left = new BinaryOp('AND', left, right);
-        }
-        return left;
+    return this.parseExpression();
+  }
+
+  private parseReturnStatement(): ReturnStatement {
+    this.consume(TokenType.SEMICOLON);
+    return new ReturnStatement();
+  }
+
+  private parseExitStatement(): ExitStatement {
+    this.consume(TokenType.SEMICOLON);
+    return new ExitStatement();
+  }
+
+  private parseExpression(): Expression {
+    return this.parseAssignment();
+  }
+
+  private parseAssignment(): Expression {
+    const left = this.parseLogicalOr();
+    if (this.match(TokenType.ASSIGN)) {
+      const value = this.parseAssignment();
+      if (left instanceof VariableRef) {
+        return new Assignment(left, value);
+      }
+      throw new SyntaxError('Assignment target must be a variable');
     }
-    
-    private parseRelational(): Expression {
-        let left = this.parseAdditive();
-        if (this.match(TokenType.EQ, TokenType.NE, TokenType.LT, 
-TokenType.GT, TokenType.LE, TokenType.GE)) {
-            const op = this.previous().value;
-            const right = this.parseAdditive();
-            left = new BinaryOp(op, left, right);
-        }
-        return left;
+    return left;
+  }
+
+  private parseLogicalOr(): Expression {
+    let left = this.parseLogicalAnd();
+    while (this.match(TokenType.OR, TokenType.XOR)) {
+      const op = this.previous().value;
+      const right = this.parseLogicalAnd();
+      left = new BinaryOp(op, left, right);
     }
-    
-    private parseAdditive(): Expression {
-        let left = this.parseMultiplicative();
-        while (this.match(TokenType.PLUS, TokenType.MINUS)) {
-            const op = this.previous().value;
-            const right = this.parseMultiplicative();
-            left = new BinaryOp(op, left, right);
-        }
-        return left;
+    return left;
+  }
+
+  private parseLogicalAnd(): Expression {
+    let left = this.parseRelational();
+    while (this.match(TokenType.AND)) {
+      const op = this.previous().value;
+      const right = this.parseRelational();
+      left = new BinaryOp('AND', left, right);
     }
-    
-    private parseMultiplicative(): Expression {
-        let left = this.parseUnary();
-        while (this.match(TokenType.MULT, TokenType.DIV, TokenType.MOD)) {
-            const op = this.previous().value;
-            const right = this.parseUnary();
-            left = new BinaryOp(op, left, right);
-        }
-        return left;
+    return left;
+  }
+
+  private parseRelational(): Expression {
+    let left = this.parseAdditive();
+    if (
+      this.match(TokenType.EQ, TokenType.NE, TokenType.LT, TokenType.GT, TokenType.LE, TokenType.GE)
+    ) {
+      const op = this.previous().value;
+      const right = this.parseAdditive();
+      left = new BinaryOp(op, left, right);
     }
-    
-    private parseUnary(): Expression {
-        if (this.match(TokenType.NOT, TokenType.MINUS)) {
-            const op = this.previous().value;
-            const operand = this.parseUnary();
-            return new UnaryOp(op, operand);
-        }
-        return this.parsePrimary();
+    return left;
+  }
+
+  private parseAdditive(): Expression {
+    let left = this.parseMultiplicative();
+    while (this.match(TokenType.PLUS, TokenType.MINUS)) {
+      const op = this.previous().value;
+      const right = this.parseMultiplicative();
+      left = new BinaryOp(op, left, right);
     }
-    
-    private parsePrimary(): Expression {
-        if (this.match(TokenType.NUMBER)) {
-            return new Literal(this.previous().numericValue, 
-                             this.inferNumericType());
-        }
-        if (this.match(TokenType.STRING)) {
-            return new Literal(this.previous().stringValue, DataType.STRING);
-        }
-        if (this.match(TokenType.TRUE, TokenType.FALSE)) {
-            return new Literal(this.previous().value === 'TRUE', 
-                             DataType.BOOL);
-        }
-        if (this.match(TokenType.IDENTIFIER)) {
-            return this.parsePostfixExpression(
-                new VariableRef(this.previous().value));
-        }
-        if (this.match(TokenType.LEFT_PAREN)) {
-            const expr = this.parseExpression();
-            this.consume(TokenType.RIGHT_PAREN);
-            return expr;
-        }
-        throw new SyntaxError(`Unexpected token at ${this.currentToken}`);
+    return left;
+  }
+
+  private parseMultiplicative(): Expression {
+    let left = this.parseUnary();
+    while (this.match(TokenType.MULT, TokenType.DIV, TokenType.MOD)) {
+      const op = this.previous().value;
+      const right = this.parseUnary();
+      left = new BinaryOp(op, left, right);
     }
-    
-    private parsePostfixExpression(expr: Expression): Expression {
-        while (this.match(TokenType.LEFT_PAREN, TokenType.DOT, 
-                         TokenType.LEFT_BRACKET)) {
-            if (this.match(TokenType.LEFT_PAREN)) {
-                expr = this.parseFunctionCall(expr);
-            } else if (this.match(TokenType.DOT)) {
-                expr = this.parseMemberAccess(expr);
-            } else if (this.match(TokenType.LEFT_BRACKET)) {
-                expr = this.parseArrayAccess(expr);
-            }
-        }
-        return expr;
+    return left;
+  }
+
+  private parseUnary(): Expression {
+    if (this.match(TokenType.NOT, TokenType.MINUS)) {
+      const op = this.previous().value;
+      const operand = this.parseUnary();
+      return new UnaryOp(op, operand);
     }
-    
-    private parseFunctionCall(func: Expression): Expression {
-        const args: Expression[] = [];
-        if (!this.match(TokenType.RIGHT_PAREN)) {
-            do {
-                args.push(this.parseExpression());
-            } while (this.match(TokenType.COMMA));
-            this.consume(TokenType.RIGHT_PAREN);
-        }
-        return new FunctionCall(
-            (func as VariableRef).variableName, args);
+    return this.parsePrimary();
+  }
+
+  private parsePrimary(): Expression {
+    if (this.match(TokenType.NUMBER)) {
+      return new Literal(this.previous().numericValue, this.inferNumericType());
     }
-    
-    private parseMemberAccess(obj: Expression): Expression {
-        const member = this.consume(TokenType.IDENTIFIER).value;
-        const accessPath = (obj instanceof VariableRef) 
-            ? [member] 
-            : [...(obj.accessPath || []), member];
-        return new VariableRef((obj as VariableRef).variableName, accessPath);
+    if (this.match(TokenType.STRING)) {
+      return new Literal(this.previous().stringValue, DataType.STRING);
     }
-    
-    private parseArrayAccess(array: Expression): Expression {
-        const index = this.parseExpression();
-        this.consume(TokenType.RIGHT_BRACKET);
-        
-        const varRef = array as VariableRef;
-        return new ArrayAccess(varRef.variableName, index, 
-                              varRef.accessPath);
+    if (this.match(TokenType.TRUE, TokenType.FALSE)) {
+      return new Literal(this.previous().value === 'TRUE', DataType.BOOL);
     }
-    
-    private inferNumericType(): DataType {
-        // 根据数值特征推断具体数值类型
-        return DataType.REAL;
+    if (this.match(TokenType.IDENTIFIER)) {
+      return this.parsePostfixExpression(new VariableRef(this.previous().value));
     }
-    
-    // 辅助方法
-    private match(...tokenTypes: TokenType[]): boolean {
-        for (const type of tokenTypes) {
-            if (this.check(type)) {
-                this.advance();
-                return true;
-            }
-        }
-        return false;
+    if (this.match(TokenType.LEFT_PAREN)) {
+      const expr = this.parseExpression();
+      this.consume(TokenType.RIGHT_PAREN);
+      return expr;
     }
-    
-    private consume(...tokenTypes: TokenType[]): Token {
-        if (!this.check(...tokenTypes)) {
-            const expected = tokenTypes.map(t => t.toString()).join(' or ');
-            const found = this.currentToken?.type.toString() ?? 'EOF';
-            this.diagnostics.push({
-                severity: 'error',
-                message: `Expected ${expected}, found ${found}`,
-                location: this.getSourceLocation(this.currentToken),
-                code: 'SCL001'
-            });
-        }
-        return this.advance();
+    throw new SyntaxError(`Unexpected token at ${this.currentToken}`);
+  }
+
+  private parsePostfixExpression(expr: Expression): Expression {
+    while (this.match(TokenType.LEFT_PAREN, TokenType.DOT, TokenType.LEFT_BRACKET)) {
+      if (this.match(TokenType.LEFT_PAREN)) {
+        expr = this.parseFunctionCall(expr);
+      } else if (this.match(TokenType.DOT)) {
+        expr = this.parseMemberAccess(expr);
+      } else if (this.match(TokenType.LEFT_BRACKET)) {
+        expr = this.parseArrayAccess(expr);
+      }
     }
-    
-    private check(...tokenTypes: TokenType[]): boolean {
-        if (this.isAtEnd()) return false;
-        return tokenTypes.some(t => this.currentToken.type === t);
+    return expr;
+  }
+
+  private parseFunctionCall(func: Expression): Expression {
+    const args: Expression[] = [];
+    if (!this.match(TokenType.RIGHT_PAREN)) {
+      do {
+        args.push(this.parseExpression());
+      } while (this.match(TokenType.COMMA));
+      this.consume(TokenType.RIGHT_PAREN);
     }
-    
-    private advance(): Token {
-        if (!this.isAtEnd()) this.currentIndex++;
-        return this.previousToken;
+    return new FunctionCall((func as VariableRef).variableName, args);
+  }
+
+  private parseMemberAccess(obj: Expression): Expression {
+    const member = this.consume(TokenType.IDENTIFIER).value;
+    const accessPath = obj instanceof VariableRef ? [member] : [...(obj.accessPath || []), member];
+    return new VariableRef((obj as VariableRef).variableName, accessPath);
+  }
+
+  private parseArrayAccess(array: Expression): Expression {
+    const index = this.parseExpression();
+    this.consume(TokenType.RIGHT_BRACKET);
+
+    const varRef = array as VariableRef;
+    return new ArrayAccess(varRef.variableName, index, varRef.accessPath);
+  }
+
+  private inferNumericType(): DataType {
+    // 根据数值特征推断具体数值类型
+    return DataType.REAL;
+  }
+
+  // 辅助方法
+  private match(...tokenTypes: TokenType[]): boolean {
+    for (const type of tokenTypes) {
+      if (this.check(type)) {
+        this.advance();
+        return true;
+      }
     }
-    
-    private isAtEnd(): boolean {
-        return this.currentIndex >= this.tokens.length;
+    return false;
+  }
+
+  private consume(...tokenTypes: TokenType[]): Token {
+    if (!this.check(...tokenTypes)) {
+      const expected = tokenTypes.map(t => t.toString()).join(' or ');
+      const found = this.currentToken?.type.toString() ?? 'EOF';
+      this.diagnostics.push({
+        severity: 'error',
+        message: `Expected ${expected}, found ${found}`,
+        location: this.getSourceLocation(this.currentToken),
+        code: 'SCL001',
+      });
     }
-    
-    private get currentToken(): Token | undefined {
-        return this.tokens[this.currentIndex];
+    return this.advance();
+  }
+
+  private check(...tokenTypes: TokenType[]): boolean {
+    if (this.isAtEnd()) return false;
+    return tokenTypes.some(t => this.currentToken.type === t);
+  }
+
+  private advance(): Token {
+    if (!this.isAtEnd()) this.currentIndex++;
+    return this.previousToken;
+  }
+
+  private isAtEnd(): boolean {
+    return this.currentIndex >= this.tokens.length;
+  }
+
+  private get currentToken(): Token | undefined {
+    return this.tokens[this.currentIndex];
+  }
+
+  private get previousToken(): Token {
+    return this.tokens[this.currentIndex - 1];
+  }
+
+  private getSourceLocation(token?: Token): SourceLocation {
+    if (!token) {
+      return { line: 0, column: 0, offset: 0 };
     }
-    
-    private get previousToken(): Token {
-        return this.tokens[this.currentIndex - 1];
+    return token.location;
+  }
+
+  private checkEndKeyword(): boolean {
+    return this.check(TokenType.END_FUNCTION_BLOCK, TokenType.END_FUNCTION, TokenType.END_PROGRAM);
+  }
+
+  private consumeEndKeyword(): void {
+    if (this.match(TokenType.END_FUNCTION_BLOCK)) {
+      return;
+    } else if (this.match(TokenType.END_FUNCTION)) {
+      return;
+    } else if (this.match(TokenType.END_PROGRAM)) {
+      return;
     }
-    
-    private getSourceLocation(token?: Token): SourceLocation {
-        if (!token) {
-            return { line: 0, column: 0, offset: 0 };
-        }
-        return token.location;
-    }
-    
-    private checkEndKeyword(): boolean {
-        return this.check(TokenType.END_FUNCTION_BLOCK, 
-                         TokenType.END_FUNCTION, 
-                         TokenType.END_PROGRAM);
-    }
-    
-    private consumeEndKeyword(): void {
-        if (this.match(TokenType.END_FUNCTION_BLOCK)) {
-            return;
-        } else if (this.match(TokenType.END_FUNCTION)) {
-            return;
-        } else if (this.match(TokenType.END_PROGRAM)) {
-            return;
-        }
-        throw new SyntaxError("Expected END keyword");
-    }
-    
-    private performSemanticAnalysis(program: Program): void {
-        // 符号表构建
-        const symbolTable = new SymbolTable();
-        this.buildSymbolTable(program, symbolTable);
-        
-        // 类型检查
-        this.typeCheckProgram(program);
-        
-        // 控制流检查
-        this.checkControlFlow(program);
-    }
+    throw new SyntaxError('Expected END keyword');
+  }
+
+  private performSemanticAnalysis(program: Program): void {
+    // 符号表构建
+    const symbolTable = new SymbolTable();
+    this.buildSymbolTable(program, symbolTable);
+
+    // 类型检查
+    this.typeCheckProgram(program);
+
+    // 控制流检查
+    this.checkControlFlow(program);
+  }
 }
 ```
 
@@ -1756,7 +1788,7 @@ TokenType.GT, TokenType.LE, TokenType.GE)) {
 将内部AST转换为符合IEC 61131-10标准的XML格式：
 
 ```typescript
-import { ASTNode, Program, FunctionBlock, Statement, 
+import { ASTNode, Program, FunctionBlock, Statement,
          Expression } from './ast';
 
 interface XMLExportOptions {
@@ -1771,7 +1803,7 @@ interface XMLExportOptions {
 class PLCOpenXMLExporter {
     private options: XMLExportOptions;
     private indentLevel: number = 0;
-    
+
     constructor(options?: Partial<XMLExportOptions>) {
         this.options = {
             companyName: 'WebPLC Editor',
@@ -1782,14 +1814,14 @@ class PLCOpenXMLExporter {
             indentSize: options?.indentSize ?? 4
         };
     }
-    
+
     public export(program: Program): string {
         const xml = this.buildXML(program);
-        return this.options.prettyPrint 
-            ? this.formatXML(xml) 
+        return this.options.prettyPrint
+            ? this.formatXML(xml)
             : xml;
     }
-    
+
     private buildXML(program: Program): string {
         return `<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://www.plcopen.org/xml(tc2)">
@@ -1800,20 +1832,20 @@ class PLCOpenXMLExporter {
     ${this.buildAddDataSection(program)}
 </project>`.trim();
     }
-    
+
     private buildFileHeader(): string {
         const now = new Date();
         const timestamp = now.toISOString();
-        return `<fileHeader 
-    companyName="${this.escapeXML(this.options.companyName)}" 
-    productName="${this.escapeXML(this.options.productName)}" 
-    productVersion="${this.options.productVersion}" 
+        return `<fileHeader
+    companyName="${this.escapeXML(this.options.companyName)}"
+    productName="${this.escapeXML(this.options.productName)}"
+    productVersion="${this.options.productVersion}"
     creationDateTime="${timestamp}"/>`;
     }
-    
+
     private buildContentHeader(program: Program): string {
-        return `<contentHeader 
-    name="${this.escapeXML(program.name)}" 
+        return `<contentHeader
+    name="${this.escapeXML(program.name)}"
     modificationDateTime="${new Date().toISOString()}">
     <coordinateInfo>
         <fbd>
@@ -1822,7 +1854,7 @@ class PLCOpenXMLExporter {
     </coordinateInfo>
 </contentHeader>`;
     }
-    
+
     private buildTypesSection(program: Program): string {
         const pous = this.buildPOU(program);
         return `<types>
@@ -1832,14 +1864,14 @@ class PLCOpenXMLExporter {
     </pous>
 </types>`;
     }
-    
+
     private buildPOU(program: Program): string {
         const pouType = this.mapPOUType(program.pouType);
         const body = this.buildBody(program.body);
         const variables = this.buildVariables(program);
-        
-        return `<pou 
-    name="${this.escapeXML(program.name)}" 
+
+        return `<pou
+    name="${this.escapeXML(program.name)}"
     pouType="${pouType}">
     ${variables}
     <body>
@@ -1853,10 +1885,10 @@ ${this.indent(body, 4)}
     </body>
 </pou>`;
     }
-    
+
     private buildVariables(program: Program): string {
         const sections: string[] = [];
-        
+
         if (program.variables.inputVars.length > 0) {
             sections.push(this.buildVariableSection('INPUT', program.variables.inputVars));
         }
@@ -1869,7 +1901,7 @@ ${this.indent(body, 4)}
         if (program.variables.localVars.length > 0) {
             sections.push(this.buildVariableSection('LOCAL', program.variables.localVars));
         }
-        
+
         if (sections.length > 0) {
             return `<interface>
     ${sections.join('\n    ')}
@@ -1877,36 +1909,36 @@ ${this.indent(body, 4)}
         }
         return '';
     }
-    
+
     private buildVariableSection(
-        direction: string, 
+        direction: string,
         variables: VariableDeclaration[]
     ): string {
-        return variables.map(v => 
-            `<var 
-        name="${this.escapeXML(v.name)}" 
-        type="${v.dataType.name}" 
+        return variables.map(v =>
+            `<var
+        name="${this.escapeXML(v.name)}"
+        type="${v.dataType.name}"
         direction="${direction}"/>`
         ).join('\n    ');
     }
-    
+
     private buildBody(statements: Statement[]): string {
         return statements.map(s => this.generateSTCode(s))
             .join('\n');
     }
-    
+
     private generateSTCode(node: ASTNode): string {
         if (node instanceof Assignment) {
             const target = this.generateSTCode(node.target);
             const value = this.generateSTCode(node.value);
             return `${target} := ${value};`;
         }
-        
+
         if (node instanceof IfStatement) {
             let code = `IF ${this.generateSTCode(node.condition)} THEN\n`;
             code += this.indent(node.thenBranch
                 .map(s => this.generateSTCode(s)).join('\n'));
-            
+
             if (node.elseIfBranches) {
                 for (const elseif of node.elseIfBranches) {
                     code += `\nELSIF ${this.generateSTCode(elseif.condition)} THEN\n`;
@@ -1914,17 +1946,17 @@ ${this.indent(body, 4)}
                         .map(s => this.generateSTCode(s)).join('\n'));
                 }
             }
-            
+
             if (node.elseBranch) {
                 code += `\nELSE\n`;
                 code += this.indent(node.elseBranch
                     .map(s => this.generateSTCode(s)).join('\n'));
             }
-            
+
             code += `\nEND_IF;`;
             return code;
         }
-        
+
         if (node instanceof ForStatement) {
             let code = `FOR ${node.counterVar} := ${this.generateSTCode(node.startValue)} TO ${this.generateSTCode(node.endValue)}`;
             if (node.stepValue) {
@@ -1936,7 +1968,7 @@ ${this.indent(body, 4)}
             code += `\nEND_FOR;`;
             return code;
         }
-        
+
         if (node instanceof WhileStatement) {
             let code = `WHILE ${this.generateSTCode(node.condition)} DO\n`;
             code += this.indent(node.body
@@ -1944,33 +1976,33 @@ ${this.indent(body, 4)}
             code += `\nEND_WHILE;`;
             return code;
         }
-        
+
         if (node instanceof BinaryOp) {
             const left = this.generateSTCode(node.left);
             const right = this.generateSTCode(node.right);
             return `${left} ${node.operator} ${right}`;
         }
-        
+
         if (node instanceof VariableRef) {
             return node.accessPath && node.accessPath.length > 0
                 ? `${node.variableName}.${node.accessPath.join('.')}`
                 : node.variableName;
         }
-        
+
         if (node instanceof Literal) {
             return this.formatLiteral(node);
         }
-        
+
         if (node instanceof FunctionCall) {
             const args = node.arguments
                 .map(a => this.generateSTCode(a))
                 .join(', ');
             return `${node.functionName}(${args})`;
         }
-        
+
         return '';
     }
-    
+
     private formatLiteral(literal: Literal): string {
         switch (literal.dataType.name) {
             case 'BOOL':
@@ -1990,7 +2022,7 @@ ${this.indent(body, 4)}
                 return String(literal.value);
         }
     }
-    
+
     private escapeXML(str: string): string {
         return str
             .replace(/&/g, '&amp;')
@@ -1998,3 +2030,4 @@ ${this.indent(body, 4)}
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&apos;');
+```

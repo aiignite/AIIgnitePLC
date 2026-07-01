@@ -1,0 +1,11 @@
+dist
+node_modules
+*.d.ts
+*.log
+.env
+.env.local
+.env.*.local
+coverage
+.DS_Store
+*.min.js
+*.min.css

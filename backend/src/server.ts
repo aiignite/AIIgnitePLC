@@ -3,11 +3,11 @@
  */
 
 import Fastify from 'fastify';
-import websocket from '@fastify/websocket';
 import cors from '@fastify/cors';
+import websocket from '@fastify/websocket';
 import { config } from './config';
-import { registerRoutes } from './routes';
 import { closePool } from './db';
+import { registerRoutes } from './routes';
 
 // 创建 logger 配置
 const loggerConfig: any = {

@@ -9,6 +9,7 @@ AIIgnitePLC is a web-based PLC (Programmable Logic Controller) programming tool 
 ## Architecture
 
 ### Frontend (React + Vite + TypeScript)
+
 - **Entry Point**: [index.tsx](src/index.tsx) via [index.html](index.html)
 - **State Management**: Zustand stores in [src/stores/](src/stores/)
   - `projectStore` - Project and tree node state
@@ -26,6 +27,7 @@ AIIgnitePLC is a web-based PLC (Programmable Logic Controller) programming tool 
   - `AICopilot` - AI assistant interface
 
 ### Backend (Node.js + Fastify + TypeScript)
+
 - **Entry Point**: [backend/src/server.ts](backend/src/server.ts)
 - **Routes**: Modular routes in [backend/src/routes/](backend/src/routes/)
   - `health` - Health check endpoints
@@ -39,6 +41,7 @@ AIIgnitePLC is a web-based PLC (Programmable Logic Controller) programming tool 
 - **Types**: Shared types in [backend/src/types.ts](backend/src/types.ts)
 
 ### Data Flow
+
 1. Frontend Zustand stores call API client methods
 2. API client sends requests to backend at `http://localhost:3310/api/v1`
 3. Backend validates and stores data in PostgreSQL
@@ -48,16 +51,20 @@ AIIgnitePLC is a web-based PLC (Programmable Logic Controller) programming tool 
 ## Development Commands
 
 ### Quick Start (Recommended)
+
 Use the interactive startup script:
+
 ```bash
 ./start.sh    # Prompts for Docker or local development mode
 ```
 
 The script provides two modes:
+
 1. **Docker mode** - Starts all services (postgres, backend, frontend) via docker-compose
 2. **Local dev mode** - Starts backend with local PostgreSQL (requires manual DB setup)
 
 ### Frontend
+
 ```bash
 npm run dev      # Start Vite dev server on port 3300
 npm run build    # Build for production
@@ -65,6 +72,7 @@ npm run preview  # Preview production build
 ```
 
 ### Backend
+
 ```bash
 cd backend
 npm run dev        # Start dev server with tsx watch (port 3310)
@@ -75,6 +83,7 @@ npm run db:reset   # Reset and re-seed database
 ```
 
 ### Docker
+
 ```bash
 docker-compose up -d    # Start all services (postgres:5433, backend:3310, frontend:3300)
 docker-compose down     # Stop all services
@@ -85,48 +94,59 @@ docker-compose restart  # Restart services
 ## Key Architecture Patterns
 
 ### Project Tree Structure
+
 Uses **Adjacency List** pattern for hierarchical data:
+
 - `project_nodes` table with `parent_id` (nullable) references `id`
 - Frontend uses lazy loading: fetch children on folder expand
 - Node types: `folder`, `device`, `block`, `tag_table`, `config`, `settings`
 
 ### Ladder Logic Storage
+
 Ladder logic stored as **JSONB** in `program_blocks.content`:
+
 - Do NOT normalize into separate tables for elements
 - Direct serialization of frontend `Network[]` structure
 - Version field for optimistic locking
 - Enables JSONB queries (e.g., "find blocks using Timer")
 
 ### Tag Address Validation
+
 Backend must enforce address uniqueness within memory areas:
+
 - Tags cannot overlap (e.g., `%M0.0` conflicts with `%MB0`)
 - Use `/tags/check-address` endpoint before creating/updating
 - Returns conflicting tag if address unavailable
 
 ### Real-time Communication
+
 WebSocket subscription model:
+
 - Frontend subscribes only to tags in current block + watch table
 - Backend PLC simulator (`mockPLC.ts`) cycles tag values
 - Message format: `{ tag: string, value: any, timestamp: number }`
 - Stores update `runtimeStore`, triggering component re-renders
 
 ### AI Context Injection
+
 For LLM requests (Gemini):
+
 - Always include current context (Network JSON or Tag list) in system prompt
 - Backend handles API key security (never expose to frontend)
 - Streaming via SSE or WebSocket for typewriter effect
 
 ## Port Configuration
 
-| Service | Port |
-|---------|------|
-| Frontend (Vite) | 3300 |
-| Backend API | 3310 |
-| PostgreSQL | 5433 (mapped from 5432) |
+| Service         | Port                    |
+| --------------- | ----------------------- |
+| Frontend (Vite) | 3300                    |
+| Backend API     | 3310                    |
+| PostgreSQL      | 5433 (mapped from 5432) |
 
 ## Environment Variables
 
 ### Backend ([backend/.env](backend/.env))
+
 ```
 PORT=3310
 HOST=0.0.0.0
@@ -141,6 +161,7 @@ LOG_LEVEL=info
 ```
 
 ### Frontend
+
 ```
 VITE_API_BASE_URL=http://localhost:3310/api/v1
 ```

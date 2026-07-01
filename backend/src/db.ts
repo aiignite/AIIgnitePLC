@@ -25,7 +25,7 @@ pool.on('connect', () => {
   console.log('✅ PostgreSQL: 新连接已建立');
 });
 
-pool.on('error', (err) => {
+pool.on('error', err => {
   console.error('❌ PostgreSQL: 连接池错误', err);
 });
 
@@ -51,9 +51,7 @@ export async function query<T extends QueryResultRow = any>(
 /**
  * 执行事务
  */
-export async function transaction<T>(
-  callback: (client: any) => Promise<T>
-): Promise<T> {
+export async function transaction<T>(callback: (client: any) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

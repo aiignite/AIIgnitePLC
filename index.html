@@ -1,32 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Ignite PLC</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              primary: "#137fec",
-              "primary-dark": "#0b5ed7",
-              "bg-light": "#f3f4f6",
-              "bg-panel": "#ffffff",
-              "border-color": "#cbd5e1",
-              "siemens-dark": "#0d141b",
-              "selection-blue": "#e0f2fe",
+              primary: '#137fec',
+              'primary-dark': '#0b5ed7',
+              'bg-light': '#f3f4f6',
+              'bg-panel': '#ffffff',
+              'border-color': '#cbd5e1',
+              'siemens-dark': '#0d141b',
+              'selection-blue': '#e0f2fe',
             },
             fontFamily: {
-              display: ["Space Grotesk", "sans-serif"],
-              body: ["Noto Sans", "sans-serif"],
+              display: ['Space Grotesk', 'sans-serif'],
+              body: ['Noto Sans', 'sans-serif'],
             },
           },
         },
-      }
+      };
     </script>
     <style>
       /* Custom scrollbar to match technical feel */
@@ -35,17 +41,17 @@
         height: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: #f1f1f1; 
+        background: #f1f1f1;
       }
       ::-webkit-scrollbar-thumb {
-        background: #c1c1c1; 
+        background: #c1c1c1;
         border-radius: 4px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8; 
+        background: #a8a8a8;
       }
     </style>
-</head>
+  </head>
   <body class="bg-bg-light text-slate-800 font-body h-screen overflow-hidden antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>

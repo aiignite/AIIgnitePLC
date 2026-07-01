@@ -95,52 +95,52 @@ npm run dev
 
 ### 健康检查
 
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| GET | `/health` | 基础健康检查 |
-| GET | `/health/detail` | 详细健康检查（含数据库） |
-| GET | `/ready` | 就绪检查 |
+| 方法 | 路径             | 描述                     |
+| ---- | ---------------- | ------------------------ |
+| GET  | `/health`        | 基础健康检查             |
+| GET  | `/health/detail` | 详细健康检查（含数据库） |
+| GET  | `/ready`         | 就绪检查                 |
 
 ### 项目管理
 
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| POST | `/api/v1/projects` | 创建新项目 |
-| GET | `/api/v1/projects` | 获取项目列表 |
-| GET | `/api/v1/projects/:id` | 获取项目详情 |
-| PATCH | `/api/v1/projects/:id` | 更新项目 |
-| DELETE | `/api/v1/projects/:id` | 删除项目 |
+| 方法   | 路径                   | 描述         |
+| ------ | ---------------------- | ------------ |
+| POST   | `/api/v1/projects`     | 创建新项目   |
+| GET    | `/api/v1/projects`     | 获取项目列表 |
+| GET    | `/api/v1/projects/:id` | 获取项目详情 |
+| PATCH  | `/api/v1/projects/:id` | 更新项目     |
+| DELETE | `/api/v1/projects/:id` | 删除项目     |
 
 ### 树节点管理
 
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| GET | `/api/v1/projects/:id/tree` | 获取项目树 |
-| POST | `/api/v1/projects/:id/nodes` | 创建节点 |
-| PATCH | `/api/v1/nodes/:id` | 更新节点 |
-| DELETE | `/api/v1/nodes/:id` | 删除节点 |
+| 方法   | 路径                         | 描述       |
+| ------ | ---------------------------- | ---------- |
+| GET    | `/api/v1/projects/:id/tree`  | 获取项目树 |
+| POST   | `/api/v1/projects/:id/nodes` | 创建节点   |
+| PATCH  | `/api/v1/nodes/:id`          | 更新节点   |
+| DELETE | `/api/v1/nodes/:id`          | 删除节点   |
 
 ### 变量管理
 
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| GET | `/api/v1/projects/:id/tags` | 获取变量列表 |
-| POST | `/api/v1/projects/:id/tags` | 创建变量 |
-| PATCH | `/api/v1/tags/:id` | 更新变量 |
-| DELETE | `/api/v1/tags/:id` | 删除变量 |
+| 方法   | 路径                        | 描述         |
+| ------ | --------------------------- | ------------ |
+| GET    | `/api/v1/projects/:id/tags` | 获取变量列表 |
+| POST   | `/api/v1/projects/:id/tags` | 创建变量     |
+| PATCH  | `/api/v1/tags/:id`          | 更新变量     |
+| DELETE | `/api/v1/tags/:id`          | 删除变量     |
 
 ### 程序块管理
 
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| GET | `/api/v1/blocks/:id` | 获取程序块 |
-| PUT | `/api/v1/blocks/:id` | 保存程序块 |
-| POST | `/api/v1/projects/:id/compile` | 编译验证 |
+| 方法 | 路径                           | 描述       |
+| ---- | ------------------------------ | ---------- |
+| GET  | `/api/v1/blocks/:id`           | 获取程序块 |
+| PUT  | `/api/v1/blocks/:id`           | 保存程序块 |
+| POST | `/api/v1/projects/:id/compile` | 编译验证   |
 
 ### WebSocket
 
-| 路径 | 描述 |
-|------|------|
+| 路径         | 描述              |
+| ------------ | ----------------- |
 | `/api/v1/ws` | 实时 PLC 数据推送 |
 
 ## 环境变量
@@ -233,12 +233,12 @@ services:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: aiignite_plc
     ports:
-      - "5432:5432"
+      - '5432:5432'
 
   backend:
     build: ./backend
     ports:
-      - "3001:3001"
+      - '3001:3001'
     depends_on:
       - postgres
     environment:

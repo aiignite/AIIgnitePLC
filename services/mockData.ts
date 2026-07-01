@@ -1,4 +1,4 @@
-import { ProjectNode, Network, ChatMessage, TagDefinition } from '../types';
+import { ChatMessage, Network, ProjectNode, TagDefinition } from '../types';
 
 export const INITIAL_PROJECT_TREE: ProjectNode[] = [
   {
@@ -22,8 +22,8 @@ export const INITIAL_PROJECT_TREE: ProjectNode[] = [
             isOpen: true,
             children: [
               { id: 'ob1', name: 'Main [OB1]', type: 'block', color: 'text-primary' },
-              { id: 'fc1', name: 'Motor_Control [FC1]', type: 'block', color: 'text-purple-500' }
-            ]
+              { id: 'fc1', name: 'Motor_Control [FC1]', type: 'block', color: 'text-purple-500' },
+            ],
           },
           {
             id: 'tags',
@@ -31,14 +31,14 @@ export const INITIAL_PROJECT_TREE: ProjectNode[] = [
             type: 'folder',
             isOpen: true,
             children: [
-              { id: 'tag_table', name: '默认变量表', type: 'tag', color: 'text-pink-500' }
-            ]
-          }
-        ]
+              { id: 'tag_table', name: '默认变量表', type: 'tag', color: 'text-pink-500' },
+            ],
+          },
+        ],
       },
-      { id: 'common', name: '公共数据', type: 'folder', isOpen: false }
-    ]
-  }
+      { id: 'common', name: '公共数据', type: 'folder', isOpen: false },
+    ],
+  },
 ];
 
 export const INITIAL_NETWORKS: Network[] = [
@@ -50,14 +50,20 @@ export const INITIAL_NETWORKS: Network[] = [
       {
         id: 'rung1',
         elements: [
-          { id: 'e1', type: 'contactNO', tag: 'Start_Btn', address: '%I0.0', comment: '主启动按钮' },
+          {
+            id: 'e1',
+            type: 'contactNO',
+            tag: 'Start_Btn',
+            address: '%I0.0',
+            comment: '主启动按钮',
+          },
           { id: 'e2', type: 'contactNC', tag: 'Stop_Btn', address: '%I0.1', comment: '急停' },
           { id: 'e3', type: 'coil', tag: 'Motor_Coil', address: '%Q0.0', comment: '主电机接触器' },
         ],
         hasBranch: true,
-        branchElement: { id: 'e4', type: 'contactNO', tag: 'Motor_Coil', address: '%Q0.0' }
-      }
-    ]
+        branchElement: { id: 'e4', type: 'contactNO', tag: 'Motor_Coil', address: '%Q0.0' },
+      },
+    ],
   },
   {
     id: 'net2',
@@ -68,42 +74,44 @@ export const INITIAL_NETWORKS: Network[] = [
         id: 'rung2',
         elements: [
           { id: 'e5', type: 'contactNO', tag: 'Motor_Coil', address: '%Q0.0' },
-          { 
-            id: 'e6', 
-            type: 'box_timer', 
-            tag: 'IEC_Timer_0_DB', 
+          {
+            id: 'e6',
+            type: 'box_timer',
+            tag: 'IEC_Timer_0_DB',
             address: 'TON',
             parameters: [
-               { name: 'IN', value: '' },
-               { name: 'Q', value: '' },
-               { name: 'PT', value: 'T#5s' },
-               { name: 'ET', value: '' }
-            ]
+              { name: 'IN', value: '' },
+              { name: 'Q', value: '' },
+              { name: 'PT', value: 'T#5s' },
+              { name: 'ET', value: '' },
+            ],
           },
           { id: 'e7', type: 'coil', tag: 'Timer_Done', address: '%M10.0' },
-        ]
-      }
-    ]
-  }
+        ],
+      },
+    ],
+  },
 ];
 
 export const INITIAL_CHAT: ChatMessage[] = [
   {
     id: 'm1',
     role: 'system',
-    content: "我已经分析了程序段 1。如果在停止按钮失效的情况下，自锁逻辑可能存在安全风险。需要我详细解释吗？",
-    actions: ['解释逻辑', '优化网络', '生成 SCL 代码']
+    content:
+      '我已经分析了程序段 1。如果在停止按钮失效的情况下，自锁逻辑可能存在安全风险。需要我详细解释吗？',
+    actions: ['解释逻辑', '优化网络', '生成 SCL 代码'],
   },
   {
     id: 'm2',
     role: 'user',
-    content: "请解释一下逻辑。"
+    content: '请解释一下逻辑。',
   },
   {
     id: 'm3',
     role: 'system',
-    content: "程序段 1 实现了一个标准的'自锁'电路。\n• Start_Btn (%I0.0) 启动电流流动。\n• Motor_Coil (%Q0.0) 与启动按钮并联，实现电路自锁。\n• Stop_Btn (%I0.1) 切断电路。"
-  }
+    content:
+      "程序段 1 实现了一个标准的'自锁'电路。\n• Start_Btn (%I0.0) 启动电流流动。\n• Motor_Coil (%Q0.0) 与启动按钮并联，实现电路自锁。\n• Stop_Btn (%I0.1) 切断电路。",
+  },
 ];
 
 export const MOCK_TAGS: TagDefinition[] = [

@@ -1,9 +1,11 @@
 /**
  * API 客户端服务层
  * 提供与后端 API 的统一接口
+ * 支持自动令牌刷新和认证
  */
 
-import type { ProjectNode, TagDefinition, Network } from '../types';
+import { useAuthStore } from '../stores/authStore';
+import type { ProjectNode, TagDefinition } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3310/api/v1';
 
@@ -22,19 +24,50 @@ class APIError extends Error {
 }
 
 /**
- * 通用请求处理
+ * 通用请求处理（支持自动令牌刷新）
  */
-async function request<T>(
-  url: string,
-  options?: RequestInit
-): Promise<T> {
-  const response = await fetch(`${API_BASE}${url}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const { accessToken, refreshAccessToken } = useAuthStore.getState();
+
+  let headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options?.headers,
+  };
+
+  // 如果有访问令牌，添加到请求头
+  if (accessToken) {
+    headers = {
+      ...headers,
+      Authorization: `Bearer ${accessToken}`,
+    };
+  }
+
+  let response = await fetch(`${API_BASE}${url}`, {
     ...options,
+    headers,
   });
+
+  // 如果返回 401，尝试刷新令牌
+  if (response.status === 401 && accessToken) {
+    try {
+      await refreshAccessToken();
+      const newAccessToken = useAuthStore.getState().accessToken;
+
+      if (newAccessToken) {
+        // 使用新令牌重试请求
+        response = await fetch(`${API_BASE}${url}`, {
+          ...options,
+          headers: {
+            ...headers,
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+        });
+      }
+    } catch (error) {
+      // 刷新失败，用户需要重新登录
+      console.error('令牌刷新失败:', error);
+    }
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({
@@ -230,11 +263,7 @@ export const tagAPI = {
   /**
    * 检查地址是否可用
    */
-  checkAddress: (params: {
-    address: string;
-    projectId: string;
-    excludeId?: string;
-  }) => {
+  checkAddress: (params: { address: string; projectId: string; excludeId?: string }) => {
     const searchParams = new URLSearchParams();
     searchParams.set('address', params.address);
     searchParams.set('projectId', params.projectId);

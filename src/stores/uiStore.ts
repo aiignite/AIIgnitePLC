@@ -50,7 +50,7 @@ interface UIState {
   clearNotifications: () => void;
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>(set => ({
   // 初始状态
   sidebarCollapsed: false,
   leftPanelWidth: 280,
@@ -68,27 +68,27 @@ export const useUIStore = create<UIState>((set) => ({
 
   // 切换侧边栏
   toggleSidebar: () => {
-    set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }));
+    set(state => ({ sidebarCollapsed: !state.sidebarCollapsed }));
   },
 
   // 设置左侧面板宽度
-  setLeftPanelWidth: (width) => {
+  setLeftPanelWidth: width => {
     set({ leftPanelWidth: Math.max(200, Math.min(600, width)) });
   },
 
   // 设置右侧面板宽度
-  setRightPanelWidth: (width) => {
+  setRightPanelWidth: width => {
     set({ rightPanelWidth: Math.max(250, Math.min(800, width)) });
   },
 
   // 设置视图模式
-  setViewMode: (mode) => {
+  setViewMode: mode => {
     set({ viewMode: mode });
   },
 
   // 切换面板显示
-  togglePanel: (panel) => {
-    set((state) => {
+  togglePanel: panel => {
+    set(state => {
       const newOpenPanels = new Set(state.openPanels);
       if (newOpenPanels.has(panel)) {
         newOpenPanels.delete(panel);
@@ -107,48 +107,45 @@ export const useUIStore = create<UIState>((set) => ({
   },
 
   // 设置活动面板
-  setActivePanel: (panel) => {
+  setActivePanel: panel => {
     set({ activePanel: panel });
   },
 
   // 打开对话框
-  openDialog: (dialog) => {
-    set((state) => ({
+  openDialog: dialog => {
+    set(state => ({
       dialogs: { ...state.dialogs, [dialog]: true },
     }));
   },
 
   // 关闭对话框
-  closeDialog: (dialog) => {
-    set((state) => ({
+  closeDialog: dialog => {
+    set(state => ({
       dialogs: { ...state.dialogs, [dialog]: false },
     }));
   },
 
   // 添加通知
-  addNotification: (notification) => {
+  addNotification: notification => {
     const id = Math.random().toString(36).substring(7);
-    set((state) => ({
-      notifications: [
-        ...state.notifications,
-        { ...notification, id, timestamp: Date.now() },
-      ],
+    set(state => ({
+      notifications: [...state.notifications, { ...notification, id, timestamp: Date.now() }],
     }));
 
     // 自动移除成功通知
     if (notification.type === 'success') {
       setTimeout(() => {
-        set((state) => ({
-          notifications: state.notifications.filter((n) => n.id !== id),
+        set(state => ({
+          notifications: state.notifications.filter(n => n.id !== id),
         }));
       }, 3000);
     }
   },
 
   // 移除通知
-  removeNotification: (id) => {
-    set((state) => ({
-      notifications: state.notifications.filter((n) => n.id !== id),
+  removeNotification: id => {
+    set(state => ({
+      notifications: state.notifications.filter(n => n.id !== id),
     }));
   },
 
