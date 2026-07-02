@@ -13,7 +13,8 @@ export interface ProjectNode {
     | 'tag_table'
     | 'root'
     | 'settings'
-    | 'config';
+    | 'config'
+    | 'graph_block';
   color?: string; // For icon color
   children?: ProjectNode[];
   isOpen?: boolean;
@@ -65,7 +66,7 @@ export interface TagDefinition {
 }
 
 // Global View State
-export type ViewMode = 'LADDER' | 'ST' | 'SFC' | 'TAGS' | 'CONFIG' | 'DIAGNOSTICS';
+export type ViewMode = 'LADDER' | 'ST' | 'SFC' | 'TAGS' | 'CONFIG' | 'DIAGNOSTICS' | 'GRAPHIC';
 
 export interface SfcAction {
   type: 'N' | 'S' | 'R' | 'L';

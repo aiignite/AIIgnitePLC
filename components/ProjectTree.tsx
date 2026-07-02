@@ -65,6 +65,8 @@ const ProjectTreeNode: React.FC<{
         return 'sell';
       case 'tag_table':
         return 'sell';
+      case 'graph_block':
+        return 'schema';
       default:
         return 'folder';
     }

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DeviceConfiguration } from './components/DeviceConfiguration';
+import { GraphicEditor } from './components/GraphicEditor';
 import { Inspector } from './components/Inspector';
 import { InstructionPanel } from './components/InstructionPanel';
 import { LadderEditor } from './components/LadderEditor';
@@ -945,6 +946,8 @@ const App: React.FC = () => {
       setViewMode('CONFIG');
     } else if (node.type === 'settings') {
       setViewMode('DIAGNOSTICS');
+    } else if (node.type === 'graph_block') {
+      setViewMode('GRAPHIC');
     } else if (
       node.type === 'block' ||
       node.type === 'block_ob' ||
@@ -1920,6 +1923,16 @@ const App: React.FC = () => {
                   <span className="font-bold text-slate-800 text-sm">顺序功能图 (SFC)</span>
                 </>
               )}
+              {viewMode === 'GRAPHIC' && (
+                <>
+                  <span className="material-symbols-outlined text-[20px] text-blue-500">
+                    schema
+                  </span>
+                  <span className="font-bold text-slate-800 text-sm">
+                    {findNodeById(projectTree, selectedNodeId || '')?.name || '图形程序块'}
+                  </span>
+                </>
+              )}
               <div className="flex gap-1 ml-2">
                 {(['LADDER', 'ST', 'SFC'] as ViewMode[]).map(m => (
                   <button
@@ -2094,6 +2107,7 @@ const App: React.FC = () => {
                 onChange={setSfcProgram}
               />
             )}
+            {viewMode === 'GRAPHIC' && <GraphicEditor />}
             {viewMode === 'TAGS' && (
               <TagEditor
                 tags={tags}

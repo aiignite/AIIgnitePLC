@@ -22,6 +22,12 @@ export const INITIAL_PROJECT_TREE: ProjectNode[] = [
             isOpen: true,
             children: [
               { id: 'ob1', name: 'Main [OB1]', type: 'block', color: 'text-primary' },
+              {
+                id: 'graph1',
+                name: 'Motor_Logic [Graph]',
+                type: 'graph_block',
+                color: 'text-blue-500',
+              },
               { id: 'fc1', name: 'Motor_Control [FC1]', type: 'block', color: 'text-purple-500' },
             ],
           },
