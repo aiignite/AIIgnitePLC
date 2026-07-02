@@ -36,6 +36,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "components/**/*", "types.ts", "App.tsx", "index.tsx"],
+  "include": ["src/**/*", "components/**/*", "services/**/*", "types.ts", "App.tsx", "index.tsx"],
   "exclude": ["node_modules", "dist"]
 }

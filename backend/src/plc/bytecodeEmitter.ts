@@ -9,7 +9,9 @@ import {
   PlcOpcode,
   PlcProgramHeader,
   PlcTagEntry,
+  SfcProgram,
 } from './types';
+import { validateCompileLimits } from './validateCompile';
 
 function crc32(data: Uint8Array): number {
   let crc = 0xffffffff;
@@ -30,9 +32,42 @@ function emitU32(buf: number[], v: number): void {
   buf.push((v >> 24) & 0xff, (v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff);
 }
 
-export function emitBytecode(ir: IrInstruction[], tags: PlcTagEntry[], scanMs = 10): CompileResult {
+export interface EmitOptions {
+  scanMs?: number;
+  sfc?: SfcProgram;
+  rungCount?: number;
+}
+
+export function emitBytecode(
+  ir: IrInstruction[],
+  tags: PlcTagEntry[],
+  scanMs = 10,
+  options: EmitOptions = {}
+): CompileResult {
   const code: number[] = [];
   const diagnostics: CompileResult['diagnostics'] = [];
+
+  const limitDiags = validateCompileLimits(ir, tags, scanMs, options.rungCount ?? 0, options.sfc);
+  for (const d of limitDiags) {
+    diagnostics.push(d);
+    if (d.severity === 'error') {
+      return {
+        header: {
+          magic: PLC_MAGIC_AIPC,
+          version: 1,
+          scanMs,
+          tagCount: tags.length,
+          codeSize: 0,
+          crc32: 0,
+          execMode: 0,
+        },
+        tags,
+        bytecode: new Uint8Array(0),
+        binary: new Uint8Array(0),
+        diagnostics,
+      };
+    }
+  }
 
   for (const ins of ir) {
     code.push(ins.op);
@@ -62,8 +97,17 @@ export function emitBytecode(ir: IrInstruction[], tags: PlcTagEntry[], scanMs = 
         code.push(ins.operands[1] ?? 0);
         emitU16(code, ins.operands[2] ?? 0);
         break;
+      case PlcOpcode.SFC_INIT:
       case PlcOpcode.SFC_STEP:
         emitU16(code, ins.operands[0] ?? 0);
+        break;
+      case PlcOpcode.SFC_ACTION:
+        code.push(ins.operands[0] ?? 0);
+        code.push(ins.operands[1] ?? 0);
+        code.push(ins.operands[2] ?? 0);
+        emitU16(code, ins.operands[3] ?? 0);
+        code.push(ins.operands[4] ?? 0);
+        code.push(ins.operands[5] ?? 0);
         break;
       case PlcOpcode.SCAN_END:
       case PlcOpcode.NOP:
@@ -123,7 +167,8 @@ export function emitBytecode(ir: IrInstruction[], tags: PlcTagEntry[], scanMs = 
 export function buildAiplc1Package(
   binary: Uint8Array,
   scanMs: number,
-  tags: PlcTagEntry[]
+  tags: PlcTagEntry[],
+  extras?: { sfcBinary?: Uint8Array }
 ): object {
   return {
     magic: 'AIPLC1',
@@ -138,7 +183,23 @@ export function buildAiplc1Package(
     })),
     program: {
       bytecode: Buffer.from(binary).toString('base64'),
-      crc32: new DataView(binary.buffer).getUint32(12, false),
+      crc32: new DataView(binary.buffer, binary.byteOffset, binary.byteLength).getUint32(12, false),
     },
+    ...(extras?.sfcBinary
+      ? { sfc: { binary: Buffer.from(extras.sfcBinary).toString('base64') } }
+      : {}),
+  };
+}
+
+export function parseBinaryHeader(binary: Uint8Array): PlcProgramHeader {
+  const view = new DataView(binary.buffer, binary.byteOffset, binary.byteLength);
+  return {
+    magic: view.getUint32(0, false),
+    version: view.getUint16(4, false),
+    scanMs: view.getUint16(6, false),
+    tagCount: view.getUint16(8, false),
+    codeSize: view.getUint16(10, false),
+    crc32: view.getUint32(12, false),
+    execMode: view.getUint8(16),
   };
 }

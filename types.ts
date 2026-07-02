@@ -27,6 +27,7 @@ export interface LadderElement {
   tag: string;
   address: string;
   comment?: string;
+  coilMode?: 'assign' | 'set' | 'reset';
   // Specific properties for boxes (like Timers)
   parameters?: {
     name: string;

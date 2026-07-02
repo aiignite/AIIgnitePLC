@@ -6,6 +6,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { query } from '../db';
 import { optionalAuthMiddleware } from '../middleware/auth';
+import { buildSlaveMapHexFromChain } from '../plc/rh850Protocol';
 import { logAudit } from '../services/audit';
 
 // Schema Definitions
@@ -22,6 +23,29 @@ const hardwareModuleSchema = z.object({
       subnet: z.string().optional(),
       ioStart: z.number().optional(),
       ioLength: z.number().optional(),
+      moduleType: z.enum(['K2', 'K3']).optional(),
+      moduleIp: z.string().optional(),
+      tcpPort: z.number().int().optional(),
+      baudRate: z.number().int().optional(),
+      slaveChain: z
+        .array(
+          z.object({
+            chainPos: z.number().int().min(1).max(16),
+            boardType: z.enum(['ad', 'relay', 'light', 'resistor', 'custom']),
+            boardId: z.number().int(),
+            enabled: z.boolean(),
+            diRegAddr: z.number().int(),
+            doRegAddr: z.number().int(),
+            ioBytes: z.number().int().optional(),
+          })
+        )
+        .optional(),
+      boardType: z.enum(['ad', 'relay', 'light', 'resistor', 'custom']).optional(),
+      boardId: z.number().int().optional(),
+      chainPos: z.number().int().optional(),
+      diRegAddr: z.number().int().optional(),
+      doRegAddr: z.number().int().optional(),
+      enabled: z.boolean().optional(),
     })
     .optional(),
 });
@@ -164,6 +188,45 @@ export async function hardwareRoutes(fastify: FastifyInstance) {
         return reply
           .code(500)
           .send({ error: { code: 'DB_ERROR', message: 'Failed to delete module' } });
+      }
+    },
+  });
+
+  // GET /api/v1/projects/:projectId/hardware/slave-map-hex — 0x6F frames from saved config
+  fastify.get('/projects/:projectId/hardware/slave-map-hex', {
+    onRequest: [optionalAuthMiddleware],
+    handler: async (request, reply) => {
+      const { projectId } = request.params as { projectId: string };
+      try {
+        const result = await query(
+          `SELECT config FROM hardware_modules WHERE project_id = $1 AND type = 'cpu' LIMIT 1`,
+          [projectId]
+        );
+        const slaveChain = result.rows[0]?.config?.slaveChain as
+          | Array<{
+              chainPos: number;
+              enabled: boolean;
+              diRegAddr: number;
+              doRegAddr: number;
+              ioBytes?: number;
+            }>
+          | undefined;
+
+        if (!slaveChain?.length) {
+          return reply.code(404).send({
+            error: { code: 'NOT_FOUND', message: 'CPU 模块未配置 slaveChain' },
+          });
+        }
+
+        return {
+          hex: buildSlaveMapHexFromChain(slaveChain),
+          count: slaveChain.filter(e => e.enabled).length,
+        };
+      } catch (error) {
+        request.log.error(error);
+        return reply
+          .code(500)
+          .send({ error: { code: 'DB_ERROR', message: 'Failed to build slave map hex' } });
       }
     },
   });

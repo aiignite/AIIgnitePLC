@@ -30,8 +30,9 @@ interface BlockActions {
   setStSource: (source: string) => void;
   setSfcProgram: (sfc: SfcProgram) => void;
   compilePlcDownload: (
-    tags: Array<{ name: string; address: string; data_type: string }>
-  ) => Promise<{ downloadHex?: string; error?: string }>;
+    tags: Array<{ name: string; address: string; data_type: string }>,
+    scanMs?: number
+  ) => Promise<{ downloadHex?: string; deployHex?: string; error?: string }>;
   addNetwork: (network: Network) => void;
   setNetworks: (networks: Network[]) => void;
   updateNetwork: (networkId: string, updates: Partial<Network>) => void;
@@ -308,7 +309,7 @@ export const useBlockStore = create<BlockState & BlockActions>()(
       });
     },
 
-    compilePlcDownload: async tags => {
+    compilePlcDownload: async (tags, scanMs) => {
       const state = useBlockStore.getState();
       const response = await fetchWithAuth(`${API_BASE}/plc/compile`, {
         method: 'POST',
@@ -318,14 +319,17 @@ export const useBlockStore = create<BlockState & BlockActions>()(
           st_source: state.stSource || undefined,
           sfc: state.sfcProgram || undefined,
           tags,
-          scan_ms: 10,
+          scan_ms: scanMs ?? 10,
         }),
       });
       const data = await response.json();
       if (!response.ok) {
         return { error: data.error?.message || 'PLC compile failed' };
       }
-      return { downloadHex: data.downloadHex as string };
+      return {
+        downloadHex: data.downloadHex as string,
+        deployHex: data.deployHex as string | undefined,
+      };
     },
 
     setHasUnsavedChanges: (hasChanges: boolean) => {

@@ -102,20 +102,84 @@ export interface SfcProgram {
 
 export function parseAddress(addr: string): ParsedAddress | null {
   if (!addr || !addr.startsWith('%')) return null;
-  const m = addr.match(/^%([IQM])(\d+)(?:\.(\d))?/);
-  if (!m) return null;
+
   const memMap: Record<string, PlcMemClass> = {
     I: PlcMemClass.I,
     Q: PlcMemClass.Q,
     M: PlcMemClass.M,
   };
-  const memClass = memMap[m[1]];
-  if (memClass === undefined) return null;
-  return {
-    memClass,
-    byteOffset: parseInt(m[2], 10),
-    bitOffset: m[3] !== undefined ? parseInt(m[3], 10) : 0,
-  };
+
+  const bitMatch = addr.match(/^%([IQM])(\d+)\.(\d+)$/i);
+  if (bitMatch) {
+    const memClass = memMap[bitMatch[1].toUpperCase()];
+    if (memClass === undefined) return null;
+    return {
+      memClass,
+      byteOffset: parseInt(bitMatch[2], 10),
+      bitOffset: parseInt(bitMatch[3], 10),
+    };
+  }
+
+  const byteMatch = addr.match(/^%([IQM])B(\d+)$/i);
+  if (byteMatch) {
+    const memClass = memMap[byteMatch[1].toUpperCase()];
+    if (memClass === undefined) return null;
+    return { memClass, byteOffset: parseInt(byteMatch[2], 10), bitOffset: 0 };
+  }
+
+  const wordMatch = addr.match(/^%([IQM])W(\d+)$/i);
+  if (wordMatch) {
+    const memClass = memMap[wordMatch[1].toUpperCase()];
+    if (memClass === undefined) return null;
+    return { memClass, byteOffset: parseInt(wordMatch[2], 10), bitOffset: 0 };
+  }
+
+  const dwordMatch = addr.match(/^%([IQM])D(\d+)$/i);
+  if (dwordMatch) {
+    const memClass = memMap[dwordMatch[1].toUpperCase()];
+    if (memClass === undefined) return null;
+    return { memClass, byteOffset: parseInt(dwordMatch[2], 10), bitOffset: 0 };
+  }
+
+  const dbBitMatch = addr.match(/^%DB(\d+)\.DBX(\d+)\.(\d+)$/i);
+  if (dbBitMatch) {
+    return {
+      memClass: PlcMemClass.DB,
+      byteOffset: parseInt(dbBitMatch[2], 10),
+      bitOffset: parseInt(dbBitMatch[3], 10),
+    };
+  }
+
+  const dbByteMatch = addr.match(/^%DB(\d+)\.DBB(\d+)$/i);
+  if (dbByteMatch) {
+    return {
+      memClass: PlcMemClass.DB,
+      byteOffset: parseInt(dbByteMatch[2], 10),
+      bitOffset: 0,
+    };
+  }
+
+  const dbWordMatch = addr.match(/^%DB(\d+)\.DBW(\d+)$/i);
+  if (dbWordMatch) {
+    return {
+      memClass: PlcMemClass.DB,
+      byteOffset: parseInt(dbWordMatch[2], 10),
+      bitOffset: 0,
+    };
+  }
+
+  const simpleMatch = addr.match(/^%([IQM])(\d+)$/i);
+  if (simpleMatch) {
+    const memClass = memMap[simpleMatch[1].toUpperCase()];
+    if (memClass === undefined) return null;
+    return {
+      memClass,
+      byteOffset: parseInt(simpleMatch[2], 10),
+      bitOffset: 0,
+    };
+  }
+
+  return null;
 }
 
 export function parseTimeMs(value: string): number {

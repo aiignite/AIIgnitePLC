@@ -7,3 +7,4 @@ export { useTagStore } from './tagStore';
 export { useBlockStore } from './blockStore';
 export { useUIStore } from './uiStore';
 export { useRuntimeStore } from './runtimeStore';
+export { useDeployStore } from './deployStore';

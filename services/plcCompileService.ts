@@ -15,8 +15,10 @@ export interface CompilePlcResult {
   success: boolean;
   package?: Record<string, unknown>;
   downloadHex?: string;
+  deployHex?: string;
   binarySize?: number;
   downloadFrameCount?: number;
+  deployFrameCount?: number;
   diagnostics?: Array<{ severity: string; message: string }>;
   error?: string;
 }

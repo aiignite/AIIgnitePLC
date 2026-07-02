@@ -6,6 +6,7 @@ import { FastifyInstance } from 'fastify';
 import { aiRoutes } from './ai';
 import { authRoutes } from './auth';
 import { blockRoutes } from './blocks';
+import { deviceWsRoutes } from './deviceWs';
 import { hardwareRoutes } from './hardware';
 import { healthRoutes } from './health';
 import { nodeRoutes } from './nodes';
@@ -49,6 +50,7 @@ export function registerRoutes(fastify: FastifyInstance) {
 
         // WebSocket 路由
         websocketRoutes(fastify);
+        deviceWsRoutes(fastify);
       },
       { prefix: '/api/v1' }
     );
@@ -57,6 +59,7 @@ export function registerRoutes(fastify: FastifyInstance) {
   console.log('📋 路由已注册');
   console.log('  ✅ /health - 健康检查路由已注册');
   console.log('  ✅ /ws - WebSocket 路由已注册');
+  console.log('  ✅ /ws/device - 设备 TCP 桥接 WebSocket 已注册');
   console.log('  ✅ /api/v1/auth - 认证路由已注册');
   console.log('  ✅ /api/v1/projects - 项目管理路由已注册');
   console.log('  ✅ /api/v1/ai/chat - AI 助手代理路由已注册');

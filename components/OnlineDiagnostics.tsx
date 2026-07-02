@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { fetchWithAuth } from '../src/services/authFetch';
 import { useBlockStore } from '../src/stores/blockStore';
+import { useDeployStore } from '../src/stores/deployStore';
 import { useProjectStore } from '../src/stores/projectStore';
 import { useRuntimeStore } from '../src/stores/runtimeStore';
+import { DeployPanel } from './DeployPanel';
 
 type DiagnosticsView =
   | 'compile'
@@ -21,7 +23,16 @@ type DiagnosticsView =
 
 export const OnlineDiagnostics: React.FC = () => {
   const [activeView, setActiveView] = useState<DiagnosticsView>('status');
-  const { compilationErrors, isCompiling } = useBlockStore();
+  const { compilationErrors, isCompiling, compilePlcDownload } = useBlockStore();
+  const {
+    hwStatus,
+    minScanUs,
+    maxScanUs,
+    scanMs,
+    setCompileResult,
+    connected: hwConnected,
+    forceAddress,
+  } = useDeployStore();
   const {
     watchAddresses,
     addWatchAddress,
@@ -280,7 +291,16 @@ export const OnlineDiagnostics: React.FC = () => {
                     >
                       {quality}
                     </td>
-                    <td className="p-2 text-right">
+                    <td className="p-2 text-right space-x-1">
+                      {hwConnected && (
+                        <button
+                          className="text-xs px-2 py-0.5 rounded bg-orange-100 hover:bg-orange-200 text-orange-800"
+                          onClick={() => void forceAddress(address, true, true)}
+                          title="硬件强制 (0x6B)"
+                        >
+                          强制
+                        </button>
+                      )}
                       <button
                         className="text-xs px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700"
                         onClick={() => removeWatchAddress(address)}
@@ -299,13 +319,23 @@ export const OnlineDiagnostics: React.FC = () => {
   );
 
   const renderPlcHwView = () => (
-    <div className="animate-fade-in max-w-2xl">
-      <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4">
+    <div className="animate-fade-in max-w-3xl space-y-4">
+      <DeployPanel
+        scanMs={scanMs}
+        onCompile={async () => {
+          const result = await compilePlcDownload([], scanMs);
+          if (result.error) throw new Error(result.error);
+          if (result.downloadHex) {
+            setCompileResult(result.downloadHex, result.deployHex);
+          }
+        }}
+      />
+      <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded p-3">
+        从站 I/O 映射 (0x6F) 请在「设备组态」→ CPU 模块 →「从站 I/O 映射」Tab 中配置。
+      </p>
+      <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2">
         RH850 PLC 硬件协议
       </h3>
-      <p className="text-xs text-slate-600 mb-4">
-        通过 UART3 与 RH850 主站通讯，支持在线监控与强制 I/O。
-      </p>
       <table className="w-full text-xs border border-slate-200">
         <thead className="bg-slate-100">
           <tr>
@@ -314,6 +344,14 @@ export const OnlineDiagnostics: React.FC = () => {
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td className="p-2 font-mono">0x68</td>
+            <td className="p-2">程序下载 (BEGIN/CHUNK/END)</td>
+          </tr>
+          <tr>
+            <td className="p-2 font-mono">0x69</td>
+            <td className="p-2">START / STOP / RESET</td>
+          </tr>
           <tr>
             <td className="p-2 font-mono">0x6A</td>
             <td className="p-2">状态查询 (scan_ms, last_scan_us)</td>
@@ -324,7 +362,7 @@ export const OnlineDiagnostics: React.FC = () => {
           </tr>
           <tr>
             <td className="p-2 font-mono">0x6D</td>
-            <td className="p-2">批量监控 %M/%Q</td>
+            <td className="p-2">在线监控位值</td>
           </tr>
           <tr>
             <td className="p-2 font-mono">0x6E</td>
@@ -336,50 +374,55 @@ export const OnlineDiagnostics: React.FC = () => {
           </tr>
         </tbody>
       </table>
-      <div className="mt-4 p-3 bg-blue-50 rounded text-xs text-slate-700">
-        使用编辑器工具栏「编译并导出下载帧」生成 UART 下载数据，配合上位机工具发送至 PLC。
-      </div>
     </div>
   );
+
+  const currentScanUs = hwStatus?.lastScanUs ?? 0;
+  const configuredScanMs = hwStatus?.scanMs ?? scanMs;
+  const minUs = minScanUs || currentScanUs;
+  const maxUs = maxScanUs || currentScanUs;
 
   const renderCycleTimeView = () => (
     <div className="animate-fade-in max-w-2xl">
       <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4">
         循环时间 (Cycle Time)
       </h3>
+      {!hwConnected && (
+        <div className="mb-4 p-2 bg-amber-50 text-amber-800 text-xs rounded">
+          连接 RH850 串口后显示真实扫描周期（0x6A）。当前为 WebSocket 仿真数据。
+        </div>
+      )}
+      {hwStatus?.errorCode === 0x0705 && (
+        <div className="mb-4 p-2 bg-red-50 text-red-700 text-xs rounded">
+          扫描周期超限 (0x0705 Scan overrun)
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="bg-slate-50 p-4 rounded border border-slate-200 text-center">
           <div className="text-xs text-slate-500 mb-1">最短</div>
           <div className="text-xl font-mono font-bold text-slate-700">
-            1.0 <span className="text-xs font-normal">ms</span>
+            {(minUs / 1000).toFixed(2)} <span className="text-xs font-normal">ms</span>
           </div>
         </div>
         <div className="bg-slate-50 p-4 rounded border border-slate-200 text-center">
           <div className="text-xs text-slate-500 mb-1">当前</div>
           <div className="text-xl font-mono font-bold text-green-600">
-            4.2 <span className="text-xs font-normal">ms</span>
+            {(currentScanUs / 1000).toFixed(2)} <span className="text-xs font-normal">ms</span>
           </div>
         </div>
         <div className="bg-slate-50 p-4 rounded border border-slate-200 text-center">
           <div className="text-xs text-slate-500 mb-1">最长</div>
           <div className="text-xl font-mono font-bold text-slate-700">
-            12.5 <span className="text-xs font-normal">ms</span>
+            {(maxUs / 1000).toFixed(2)} <span className="text-xs font-normal">ms</span>
           </div>
         </div>
       </div>
 
-      <div className="mb-2 flex justify-between text-xs text-slate-500">
-        <span>0 ms</span>
-        <span>150 ms (Max Limit)</span>
-      </div>
-      <div className="h-6 bg-slate-200 rounded-full overflow-hidden relative border border-slate-300">
-        {/* Max marker */}
-        <div className="absolute top-0 bottom-0 bg-slate-300 w-1" style={{ left: '8%' }}></div>
-        {/* Current */}
-        <div className="h-full bg-green-500 w-[4%] relative transition-all duration-500"></div>
-      </div>
-      <p className="text-xs text-slate-500 mt-2 italic">配置的最大循环时间监控: 150ms</p>
+      <p className="text-xs text-slate-500">
+        配置扫描周期: {configuredScanMs} ms
+        {hwStatus ? ` · 模式=${hwStatus.mode} · ${hwStatus.errorMessage}` : ''}
+      </p>
     </div>
   );
 

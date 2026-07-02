@@ -40,6 +40,17 @@ export const config = {
     heartbeatInterval: parseInt(process.env.WS_HEARTBEAT || '30000'),
   },
 
+  // USR-K device TCP bridge
+  deviceTcp: {
+    enabled: process.env.DEVICE_TCP_ENABLED !== 'false',
+    allowlist: (process.env.DEVICE_TCP_ALLOWLIST || '192.168.0.0/16,10.0.0.0/8,172.16.0.0/12')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean),
+    defaultPort: parseInt(process.env.DEVICE_TCP_DEFAULT_PORT || '8234', 10),
+    connectTimeoutMs: parseInt(process.env.DEVICE_TCP_CONNECT_TIMEOUT_MS || '5000', 10),
+  },
+
   // 开发模式
   isDevelopment: process.env.NODE_ENV !== 'production',
 

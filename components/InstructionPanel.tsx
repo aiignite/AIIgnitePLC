@@ -3,7 +3,10 @@ import { ChatMessage, Instruction } from '../types';
 import { AICopilot } from './AICopilot';
 
 interface InstructionPanelProps {
-  onAddInstruction: (type: string) => void;
+  onAddInstruction: (
+    type: string,
+    meta?: { comment?: string; coilMode?: 'assign' | 'set' | 'reset' }
+  ) => void;
   chatMessages: ChatMessage[];
   onSendMessage: (text: string) => void;
 }
@@ -24,8 +27,8 @@ const INSTRUCTIONS: Instruction[] = [
     description: 'Normally Closed',
   },
   { id: 'i3', name: '线圈', category: 'BitLogic', type: 'coil', description: 'Assignment' },
-  { id: 'i4', name: '置位线圈', category: 'BitLogic', type: 'coil', description: 'Set Output' }, // Mock
-  { id: 'i5', name: '复位线圈', category: 'BitLogic', type: 'coil', description: 'Reset Output' }, // Mock
+  { id: 'i4', name: '置位线圈', category: 'BitLogic', type: 'coil', description: 'Set Output' },
+  { id: 'i5', name: '复位线圈', category: 'BitLogic', type: 'coil', description: 'Reset Output' },
 
   { id: 't1', name: '接通延时', category: 'Timer', type: 'box_timer', description: 'TON' },
   { id: 't2', name: '关断延时', category: 'Timer', type: 'box_timer', description: 'TOF' },
@@ -34,8 +37,8 @@ const INSTRUCTIONS: Instruction[] = [
   { id: 'c1', name: '加计数', category: 'Counter', type: 'box_timer', description: 'CTU' },
   { id: 'c2', name: '减计数', category: 'Counter', type: 'box_timer', description: 'CTD' },
 
-  { id: 'm1', name: '加法', category: 'Math', type: 'box_timer', description: 'ADD' },
-  { id: 'm2', name: '减法', category: 'Math', type: 'box_timer', description: 'SUB' },
+  { id: 'm1', name: '加法', category: 'Math', type: 'empty', description: 'ADD' },
+  { id: 'm2', name: '减法', category: 'Math', type: 'empty', description: 'SUB' },
 ];
 
 export const InstructionPanel: React.FC<InstructionPanelProps> = ({
@@ -122,7 +125,19 @@ export const InstructionPanel: React.FC<InstructionPanelProps> = ({
                           <div
                             key={inst.id}
                             className="flex flex-col items-center justify-center p-2 hover:bg-blue-100 cursor-pointer group rounded border border-slate-100 hover:border-blue-300 transition-all text-center h-20"
-                            onClick={() => onAddInstruction(inst.type)}
+                            onClick={() =>
+                              onAddInstruction(inst.type, {
+                                comment: inst.description,
+                                coilMode:
+                                  inst.description === 'Set Output'
+                                    ? 'set'
+                                    : inst.description === 'Reset Output'
+                                      ? 'reset'
+                                      : inst.type === 'coil'
+                                        ? 'assign'
+                                        : undefined,
+                              })
+                            }
                             title={inst.name}
                             draggable
                           >

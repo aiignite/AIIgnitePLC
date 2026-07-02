@@ -7,9 +7,16 @@ import { z } from 'zod';
 import { query } from '../db';
 import { optionalAuthMiddleware } from '../middleware/auth';
 import { buildAiplc1Package, emitBytecode } from '../plc/bytecodeEmitter';
-import { buildDownloadSession, framesToHex } from '../plc/downloadClient';
-import { compileNetworksToIr } from '../plc/ldCompiler';
-import { compileSfcToIr } from '../plc/sfcParser';
+import { buildJsonDebugFlat } from '../plc/jsonDebugEncoder';
+import { compileNetworksToIr, countRungs } from '../plc/ldCompiler';
+import {
+  buildDownloadSession,
+  buildFrame,
+  buildFullDeploySession,
+  COMMAND_PLC_JSON,
+  framesToHex,
+} from '../plc/rh850Protocol';
+import { buildSfcBinary, compileSfcToIr } from '../plc/sfcParser';
 import { compileStToIr } from '../plc/stParser';
 import type { PlcTagEntry } from '../plc/types';
 
@@ -29,12 +36,15 @@ export async function plcRoutes(fastify: FastifyInstance) {
       const scanMs = body.scan_ms ?? 10;
       const tags: PlcTagEntry[] = [];
       let ir: ReturnType<typeof compileNetworksToIr>['ir'] = [];
+      let rungCount = 0;
+      let sfcBinary: Uint8Array | undefined;
 
       try {
         if (body.networks?.length) {
           const result = compileNetworksToIr(body.networks, body.tags);
           ir = result.ir;
           tags.push(...result.tags);
+          rungCount = countRungs(body.networks);
         }
         if (body.st_source) {
           const stIr = compileStToIr(body.st_source, tags);
@@ -43,11 +53,27 @@ export async function plcRoutes(fastify: FastifyInstance) {
         if (body.sfc) {
           const sfcIr = compileSfcToIr(body.sfc, tags);
           ir = ir.concat(sfcIr);
+          sfcBinary = buildSfcBinary(body.sfc, tags).binary;
         }
 
-        const compiled = emitBytecode(ir, tags, scanMs);
-        const packageJson = buildAiplc1Package(compiled.binary, scanMs, tags);
+        const compiled = emitBytecode(ir, tags, scanMs, { rungCount, sfc: body.sfc });
+        if (compiled.diagnostics.some(d => d.severity === 'error')) {
+          return reply.code(400).send({
+            success: false,
+            diagnostics: compiled.diagnostics,
+            error: { message: compiled.diagnostics.find(d => d.severity === 'error')?.message },
+          });
+        }
+        const packageJson = buildAiplc1Package(compiled.binary, scanMs, tags, { sfcBinary });
         const download = buildDownloadSession(compiled.binary);
+        const deploy = buildFullDeploySession(compiled.binary, scanMs);
+        const deployAllFrames = [...deploy.enableFrames, ...deploy.frames, deploy.startFrame];
+
+        let jsonDebugHex: string | undefined;
+        if (body.networks?.length) {
+          const flat = buildJsonDebugFlat(body.networks);
+          jsonDebugHex = framesToHex([buildFrame(COMMAND_PLC_JSON, 0, flat)]);
+        }
 
         return {
           success: true,
@@ -56,6 +82,9 @@ export async function plcRoutes(fastify: FastifyInstance) {
           binarySize: compiled.binary.length,
           downloadFrameCount: download.frames.length,
           downloadHex: framesToHex(download.frames),
+          deployHex: framesToHex(deployAllFrames),
+          deployFrameCount: deployAllFrames.length,
+          jsonDebugHex,
         };
       } catch (err: any) {
         return reply.code(400).send({

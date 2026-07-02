@@ -90,15 +90,6 @@ export async function projectRoutes(fastify: FastifyInstance) {
           });
         }
 
-        await logAudit({
-          projectId: id,
-          userId: request.user?.userId || null,
-          action: 'project.update',
-          entityType: 'project',
-          entityId: id,
-          details: { updates: body },
-        });
-
         if (
           request.user?.userId &&
           result.rows[0].created_by &&
@@ -642,6 +633,11 @@ export async function projectRoutes(fastify: FastifyInstance) {
           [id]
         );
 
+        const nodesResult = await query(
+          `SELECT id, name, type, parent_id FROM project_nodes WHERE project_id = $1`,
+          [id]
+        );
+
         const project = projectResult.rows[0];
         const now = new Date().toISOString();
         const escapeXmlAttr = (value: string) =>
@@ -720,6 +716,19 @@ export async function projectRoutes(fastify: FastifyInstance) {
                   if (element.type === 'coil') {
                     const commentText = escapeXmlText(normalizeString(element.comment || ''));
                     const addressText = escapeXmlText(normalizeString(element.address || ''));
+                    const coilMode =
+                      element.coilMode ||
+                      (commentText === 'Set Output'
+                        ? 'set'
+                        : commentText === 'Reset Output'
+                          ? 'reset'
+                          : 'assign');
+                    const storageAttr =
+                      coilMode === 'set'
+                        ? ' storage="set"'
+                        : coilMode === 'reset'
+                          ? ' storage="reset"'
+                          : '';
                     const addDataXml =
                       commentText || addressText
                         ? `
@@ -727,18 +736,24 @@ export async function projectRoutes(fastify: FastifyInstance) {
               <data name="AIIgnitePLC" handleUnknown="preserve">
                 ${addressText ? `<Address>${addressText}</Address>` : ''}
                 ${commentText ? `<Comment>${commentText}</Comment>` : ''}
+                <CoilMode>${escapeXmlText(coilMode)}</CoilMode>
               </data>
             </addData>`
                         : '';
                     return `
-          <coil localId="${localId++}">
+          <coil localId="${localId++}"${storageAttr}>
             <variable>${tag}</variable>
             ${addDataXml}
           </coil>`;
                   }
 
                   if (element.type === 'box_timer') {
-                    const typeName = escapeXmlAttr(normalizeString(element.address || 'TON'));
+                    const rawType = normalizeString(element.comment || element.address || 'TON');
+                    const typeName = escapeXmlAttr(
+                      ['CTU', 'CTD', 'TOF', 'TP', 'TON'].includes(rawType.toUpperCase())
+                        ? rawType.toUpperCase()
+                        : 'TON'
+                    );
                     const instanceName = escapeXmlAttr(normalizeString(element.tag || 'Timer'));
                     const commentText = escapeXmlText(normalizeString(element.comment || ''));
                     const parameters = Array.isArray(element.parameters) ? element.parameters : [];
@@ -878,7 +893,7 @@ export async function projectRoutes(fastify: FastifyInstance) {
   <instances />
       <addData>
     <data name="AIIgnitePLC" handleUnknown="preserve">
-          <ProjectData><![CDATA[${JSON.stringify({ project: { name: project.name, description: project.description || null }, tags: tagsResult.rows, blocks: blocksResult.rows.map((b: any) => ({ id: b.id, block_type: b.block_type, name: b.node_name, content: b.content })), hardware: hardwareResult.rows, projectNodes: rootNodes })}]]></ProjectData>
+          <ProjectData><![CDATA[${JSON.stringify({ project: { name: project.name, description: project.description || null }, tags: tagsResult.rows, blocks: blocksResult.rows.map((b: any) => ({ id: b.id, block_type: b.block_type, name: b.node_name, content: b.content })), hardware: hardwareResult.rows, projectNodes: nodesResult.rows })}]]></ProjectData>
     </data>
   </addData>
 </project>`;

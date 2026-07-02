@@ -1162,14 +1162,18 @@ const App: React.FC = () => {
   };
 
   // --- Logic: Ladder Editing ---
-  const handleAddInstruction = (type: string) => {
+  const handleAddInstruction = (
+    type: string,
+    meta?: { comment?: string; coilMode?: 'assign' | 'set' | 'reset' }
+  ) => {
     const newId = Date.now().toString();
     const newElement: LadderElement = {
       id: newId,
       type: type as ElementType,
       tag: 'Tag_' + newId.slice(-4),
-      address: '???',
-      comment: '',
+      address: type === 'box_timer' ? meta?.comment?.toUpperCase() || 'TON' : '???',
+      comment: meta?.comment || '',
+      coilMode: meta?.coilMode,
       parameters:
         type === 'box_timer'
           ? [

@@ -174,6 +174,60 @@ VITE_API_BASE_URL=http://localhost:3310/api/v1
 4. **CORS**: Backend only allows requests from configured origin
 5. **WebSocket Cleanup**: Unsubscribe from tags when closing blocks to prevent memory leaks
 
+## seeyaoplcmaster (RH850 Target) Integration
+
+AIIgnitePLC compiles to **AIPLC1/AIPC bytecode** consumed by [seeyaoplcmaster](~/Documents/AI/test/seeyaoplcmaster) firmware on Renesas RH850 R7F701581.
+
+| Component         | Path                                                                  |
+| ----------------- | --------------------------------------------------------------------- |
+| Shared IR opcodes | `backend/src/plc/types.ts` ↔ `seeyaoplcmaster/app/plc/plc_ir.h`       |
+| Compiler          | `backend/src/plc/` (ldCompiler, stParser, sfcParser, bytecodeEmitter) |
+| UART3 protocol    | `backend/src/plc/rh850Protocol.ts`, `services/rh850Protocol.ts`       |
+| Deploy UI         | `components/DeployPanel.tsx` (Web Serial + remote TCP via USR-K)      |
+| Sim VM            | `backend/src/plc/simVm.ts` (mockPLC uses same bytecode)               |
+| IR sync script    | `scripts/sync-plc-ir.sh`                                              |
+
+### UART3 FuncCodes (ControlID=0x01)
+
+| Code      | Function                                                               |
+| --------- | ---------------------------------------------------------------------- |
+| 0x64/0x65 | Virtual register read/write (`PLCMode` @ 0x1008, `PLCScanMs` @ 0x100A) |
+| 0x68      | Program download (BEGIN/CHUNK/END)                                     |
+| 0x69      | START / STOP / RESET                                                   |
+| 0x6A      | Status (scan_ms, last_scan_us, error)                                  |
+| 0x6B      | Force I/O                                                              |
+| 0x6D      | Monitor bit                                                            |
+| 0x6E      | JSON flat LD debug load                                                |
+| 0x6F      | Slave I/O map (up to 16 slaves)                                        |
+
+### Deploy Workflow
+
+1. `POST /api/v1/plc/compile` → `downloadHex` + `deployHex` (enable PLC + download + START)
+2. **DeployPanel** — choose connection mode:
+   - **本地 USB**: Web Serial → UART3 (direct)
+   - **远程 TCP (LAN)**: Browser → `/api/v1/ws/device` → backend TCP Client → USR-K module (TCP Server) → UART3
+3. Online diagnostics polls 0x6A for cycle time when device connected
+
+### Remote TCP (USR-K on PCBA)
+
+PCBA uses [USR-K2/K3](https://www.usr.cn/Product/21.html) soldered module. User docs:
+
+- [docs/README.md](docs/README.md) — documentation index
+- [docs/remote-tcp-deploy.md](docs/remote-tcp-deploy.md) — architecture, WebSocket protocol, workflow
+- [docs/usr-k-pcba-config.md](docs/usr-k-pcba-config.md) — module factory/site configuration
+
+| Layer           | Path                                                                     |
+| --------------- | ------------------------------------------------------------------------ |
+| Frame parser    | `backend/src/plc/rh850FrameParser.ts`, `services/rh850FrameParser.ts`    |
+| TCP bridge      | `backend/src/services/tcpSerialBridge.ts`                                |
+| Device WS       | `GET /api/v1/ws/device?token=...` in `backend/src/routes/deviceWs.ts`    |
+| Transport       | `services/rh850Transport.ts` (`WebSerialTransport`, `WsDeviceTransport`) |
+| Hardware config | `hardware_modules.config.moduleIp`, `tcpPort` in DeviceConfiguration     |
+
+Backend env: `DEVICE_TCP_ENABLED`, `DEVICE_TCP_ALLOWLIST`, `DEVICE_TCP_DEFAULT_PORT`.
+
+Run `./scripts/sync-plc-ir.sh` after changing `plc_ir.h` on the target firmware.
+
 ## Database Schema Highlights
 
 - `projects` - Project metadata
