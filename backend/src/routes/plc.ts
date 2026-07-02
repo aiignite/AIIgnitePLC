@@ -12,7 +12,7 @@ import { compileNetworksToIr, countRungs } from '../plc/ldCompiler';
 import {
   buildDownloadSession,
   buildFrame,
-  buildFullDeploySession,
+  buildMultiBlockDeploySession,
   COMMAND_PLC_JSON,
   framesToHex,
 } from '../plc/rh850Protocol';
@@ -65,8 +65,28 @@ export async function plcRoutes(fastify: FastifyInstance) {
           });
         }
         const packageJson = buildAiplc1Package(compiled.binary, scanMs, tags, { sfcBinary });
-        const download = buildDownloadSession(compiled.binary);
-        const deploy = buildFullDeploySession(compiled.binary, scanMs);
+        const download = buildDownloadSession(compiled.binary, 512, {
+          slotId: 0,
+          blockType: 1,
+          name: 'Main [OB1]',
+          scanMs,
+        });
+        const deployBlocks: Array<{
+          binary: Uint8Array;
+          meta: import('../plc/rh850Protocol').DownloadBlockMeta;
+        }> = [
+          {
+            binary: compiled.binary,
+            meta: { slotId: 0, blockType: 1, name: 'Main [OB1]', scanMs },
+          },
+        ];
+        if (sfcBinary && sfcBinary.length > 0) {
+          deployBlocks.push({
+            binary: sfcBinary,
+            meta: { slotId: 7, blockType: 4, name: 'Main [SFC]', scanMs },
+          });
+        }
+        const deploy = buildMultiBlockDeploySession(deployBlocks, scanMs);
         const deployAllFrames = [...deploy.enableFrames, ...deploy.frames, deploy.startFrame];
 
         let jsonDebugHex: string | undefined;

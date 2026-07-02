@@ -1,5 +1,12 @@
 import { create } from 'zustand';
+import {
+  buildPlcControlFrame,
+  PLC_CTRL_START,
+  PLC_CTRL_STOP,
+  sendFrame,
+} from '../../services/rh850Protocol';
 import { useAuthStore } from './authStore';
+import { useDeployStore } from './deployStore';
 
 export interface RuntimeValue {
   address: string;
@@ -266,6 +273,14 @@ export const useRuntimeStore = create<RuntimeState & RuntimeActions>((set, get) 
   },
 
   startPLC: () => {
+    const transport = useDeployStore.getState().getTransport();
+    if (transport?.isConnected()) {
+      void sendFrame(transport, buildPlcControlFrame(PLC_CTRL_START)).then(() => {
+        get().addEvent({ severity: 'info', message: 'PLC 运行 (硬件 UART3 0x69)' });
+        set({ plcStatus: 'running' });
+      });
+      return;
+    }
     const ws = get().wsConnection;
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(
@@ -279,6 +294,14 @@ export const useRuntimeStore = create<RuntimeState & RuntimeActions>((set, get) 
   },
 
   stopPLC: () => {
+    const transport = useDeployStore.getState().getTransport();
+    if (transport?.isConnected()) {
+      void sendFrame(transport, buildPlcControlFrame(PLC_CTRL_STOP)).then(() => {
+        get().addEvent({ severity: 'info', message: 'PLC 停止 (硬件 UART3 0x69)' });
+        set({ plcStatus: 'stopped' });
+      });
+      return;
+    }
     const ws = get().wsConnection;
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(

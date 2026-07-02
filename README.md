@@ -4,18 +4,22 @@
 
 ## 功能概览
 
-| 模块             | 说明                                                               |
-| ---------------- | ------------------------------------------------------------------ |
-| **梯形图编辑器** | 可视化梯形逻辑编辑，支持撤销/重做、元素检查器与指令面板            |
-| **项目树**       | 项目 → 设备 → 程序块/变量表/配置，懒加载子节点                     |
-| **变量管理**     | Tag 定义与地址冲突检测（如 `%M0.0` 与 `%MB0` 不可重叠）            |
-| **硬件配置**     | 设备与模块配置管理                                                 |
-| **在线诊断**     | WebSocket 实时监视表、PLC 启停、编译结果与运行状态                 |
-| **导入 / 导出**  | JSON 全量往返；PLCopen XML 简化 LD 网络导入导出                    |
-| **项目管理**     | 新建/打开/保存，支持公开与私有项目可见性                           |
-| **用户认证**     | JWT 注册、登录、刷新令牌与密码修改                                 |
-| **审计与历史**   | 操作审计日志、导入历史（可筛选与导出）                             |
-| **AI Co-pilot**  | 多 Provider 代理（OpenAI 兼容 / Anthropic / Ollama），需登录后使用 |
+| 模块              | 说明                                                               |
+| ----------------- | ------------------------------------------------------------------ |
+| **梯形图编辑器**  | 可视化梯形逻辑编辑，支持撤销/重做、元素检查器与指令面板            |
+| **ST / SFC 编辑** | 同一程序块可切换结构化文本 (ST) 与顺序功能图 (SFC) 视图            |
+| **PLC 编译**      | LD / ST / SFC → 统一 IR → AIPLC1 字节码，供 RH850 控制器下载       |
+| **RH850 部署**    | Web Serial (USB) 或远程 TCP (USR-K) 下载程序、启停、状态查询       |
+| **从站 I/O 映射** | UART2 菊花链从板 (AD/Relay/Light/Resistor) 组态与 0x6F 下发        |
+| **项目树**        | 项目 → 设备 → 程序块/变量表/配置，懒加载子节点                     |
+| **变量管理**      | Tag 定义与地址冲突检测（如 `%M0.0` 与 `%MB0` 不可重叠）            |
+| **硬件配置**      | RH850 机架、USR-K 网口、从站总线拓扑与通道寄存器说明               |
+| **在线诊断**      | WebSocket 实时监视表、PLC 启停、编译结果、RH850 部署面板           |
+| **导入 / 导出**   | JSON 全量往返；PLCopen XML 简化 LD 网络导入导出                    |
+| **项目管理**      | 新建/打开/保存，支持公开与私有项目可见性                           |
+| **用户认证**      | JWT 注册、登录、刷新令牌与密码修改                                 |
+| **审计与历史**    | 操作审计日志、导入历史（可筛选与导出）                             |
+| **AI Co-pilot**   | 多 Provider 代理（OpenAI 兼容 / Anthropic / Ollama），需登录后使用 |
 
 ## 技术栈
 
@@ -43,6 +47,21 @@
 - 梯形逻辑以 JSONB 存储于 `program_blocks.content`，保留完整 `Network[]` 结构
 - 项目树采用邻接表（`project_nodes.parent_id`），展开文件夹时按需加载
 - 实时数据经 WebSocket（`/api/v1/ws`）推送，Mock PLC 在 `backend/src/services/mockPLC.ts`
+- RH850 目标：编译产物为 AIPLC1 字节码，经 UART3（0x68 下载）写入 seeyaoplcmaster 固件；远程场景经 USR-K TCP 桥接
+
+## RH850 控制器（简要）
+
+面向 Renesas RH850 R7F701581 + seeyaoplcmaster 固件的完整说明见 **[docs/rh850-integration.md](./docs/rh850-integration.md)**。
+
+| 步骤 | 操作                                                            |
+| ---- | --------------------------------------------------------------- |
+| 1    | 在程序块中编写 LD / ST / SFC（建议每块只用一种语言）            |
+| 2    | **在线诊断 → RH850 部署** → 连接 USB 或远程 TCP                 |
+| 3    | **编译并下载**（`deployHex`：使能 + 下载 + START）              |
+| 4    | 若使用从站板：**设备组态** 配置从站链 → **下发从站映射 (0x6F)** |
+| 5    | **查询状态 (0x6A)** 查看扫描周期与错误码                        |
+
+从站组态与 0x6F 详见 [docs/slave-io-configuration.md](./docs/slave-io-configuration.md)；远程 TCP 详见 [docs/remote-tcp-deploy.md](./docs/remote-tcp-deploy.md)。
 
 ## 快速开始
 
@@ -133,6 +152,11 @@ CORS_ORIGIN=http://localhost:3300
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
 LOG_LEVEL=info
+
+# 远程 TCP 部署（可选，见 docs/remote-tcp-deploy.md）
+DEVICE_TCP_ENABLED=true
+DEVICE_TCP_ALLOWLIST=192.168.0.0/16,10.0.0.0/8
+DEVICE_TCP_DEFAULT_PORT=8234
 ```
 
 ### 前端 `.env.local`（可选）
@@ -230,4 +254,12 @@ AIIgnitePLC/
 
 ## 相关文档
 
-更详细的架构说明见 [CLAUDE.md](./CLAUDE.md)（面向 AI 辅助开发的代码导航指南）。
+| 文档                                                               | 说明                             |
+| ------------------------------------------------------------------ | -------------------------------- |
+| [docs/README.md](./docs/README.md)                                 | 文档索引与阅读顺序               |
+| [docs/rh850-integration.md](./docs/rh850-integration.md)           | 编译、IR 拼接、UART3、部署       |
+| [docs/slave-io-configuration.md](./docs/slave-io-configuration.md) | 从站链、设备组态、0x6F           |
+| [docs/remote-tcp-deploy.md](./docs/remote-tcp-deploy.md)           | USR-K 远程 TCP 桥接              |
+| [docs/usr-k-pcba-config.md](./docs/usr-k-pcba-config.md)           | USR-K 模块参数                   |
+| [CLAUDE.md](./CLAUDE.md)                                           | 面向 AI 辅助开发的架构与约束摘要 |
+| [backend/README.md](./backend/README.md)                           | 后端 API 与数据库                |

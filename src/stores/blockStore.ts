@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { fetchWithAuth } from '../services/authFetch';
 import type { Network, SfcProgram } from '../types';
+import { useRuntimeStore } from './runtimeStore';
 
 interface BlockState {
   currentBlockId: string | null;
@@ -325,6 +326,16 @@ export const useBlockStore = create<BlockState & BlockActions>()(
       const data = await response.json();
       if (!response.ok) {
         return { error: data.error?.message || 'PLC compile failed' };
+      }
+      const pkg = data.package as { program?: { bytecode?: string } } | undefined;
+      const ws = useRuntimeStore.getState().wsConnection;
+      if (pkg?.program?.bytecode && ws?.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({
+            type: 'load_bytecode',
+            payload: { binary: pkg.program.bytecode },
+          })
+        );
       }
       return {
         downloadHex: data.downloadHex as string,

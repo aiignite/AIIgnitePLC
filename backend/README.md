@@ -25,11 +25,14 @@ backend/
 │   │   ├── nodes.ts        # 树节点管理
 │   │   ├── tags.ts         # 变量管理
 │   │   ├── blocks.ts       # 程序块管理
+│   │   ├── hardware.ts   # 硬件与从站链
+│   │   ├── plc.ts        # PLC 编译 API
+│   │   ├── deviceWs.ts   # 远程设备 WebSocket
 │   │   └── websocket.ts    # WebSocket
+│   ├── plc/              # LD/ST/SFC 编译、字节码、RH850 协议
 │   ├── services/           # 业务逻辑
-│   │   ├── compiler.ts     # 编译验证
-│   │   ├── llm.ts          # LLM 客户端
-│   │   └── mockPLC.ts      # PLC 模拟器
+│   │   ├── mockPLC.ts      # PLC 模拟器（simVm 字节码）
+│   │   ├── tcpSerialBridge.ts  # USR-K TCP 桥接
 │   ├── parsers/            # SCL 解析器
 │   │   ├── lexer.ts
 │   │   ├── parser.ts
@@ -131,11 +134,36 @@ npm run dev
 
 ### 程序块管理
 
-| 方法 | 路径                           | 描述       |
-| ---- | ------------------------------ | ---------- |
-| GET  | `/api/v1/blocks/:id`           | 获取程序块 |
-| PUT  | `/api/v1/blocks/:id`           | 保存程序块 |
-| POST | `/api/v1/projects/:id/compile` | 编译验证   |
+| 方法 | 路径                           | 描述           |
+| ---- | ------------------------------ | -------------- |
+| GET  | `/api/v1/blocks/:id`           | 获取程序块     |
+| PUT  | `/api/v1/blocks/:id`           | 保存程序块     |
+| POST | `/api/v1/blocks/:id/compile`   | 单块 LD 编译   |
+| POST | `/api/v1/projects/:id/compile` | 全项目 LD 校验 |
+
+### PLC 编译与 RH850
+
+| 方法 | 路径                           | 描述                                               |
+| ---- | ------------------------------ | -------------------------------------------------- |
+| POST | `/api/v1/plc/compile`          | LD + ST + SFC → 字节码、`downloadHex`、`deployHex` |
+| POST | `/api/v1/plc/compile/:blockId` | 按块 ID 仅编译 networks                            |
+
+编译实现：`src/plc/`（ldCompiler、stParser、sfcParser、bytecodeEmitter、simVm）。详见 [docs/rh850-integration.md](../docs/rh850-integration.md)。
+
+### 硬件与从站
+
+| 方法    | 路径                                                 | 描述                                      |
+| ------- | ---------------------------------------------------- | ----------------------------------------- |
+| GET/PUT | `/api/v1/projects/:projectId/hardware`               | 机架模块配置（含 `slaveChain`、USR-K IP） |
+| GET     | `/api/v1/projects/:projectId/hardware/slave-map-hex` | 生成 0x6F 从站映射 hex 帧                 |
+
+### 设备 WebSocket（远程 TCP）
+
+| 方法 | 路径                            | 描述                             |
+| ---- | ------------------------------- | -------------------------------- |
+| GET  | `/api/v1/ws/device?token=<JWT>` | 桥接 USR-K TCP ↔ 前端 RH850 协议 |
+
+环境变量：`DEVICE_TCP_ENABLED`、`DEVICE_TCP_ALLOWLIST`、`DEVICE_TCP_DEFAULT_PORT`。详见 [docs/remote-tcp-deploy.md](../docs/remote-tcp-deploy.md)。
 
 ### WebSocket
 

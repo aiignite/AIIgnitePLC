@@ -27,6 +27,12 @@ export const PLC_DL_SUB_ABORT = 0x04;
 export const PLC_CTRL_START = 0x01;
 export const PLC_CTRL_STOP = 0x02;
 export const PLC_CTRL_RESET = 0x03;
+export const PLC_CTRL_SELECT_OB = 0x04;
+
+export const PLCF_BLOCK_OB = 1;
+export const PLCF_BLOCK_FC = 2;
+export const PLCF_BLOCK_FB = 3;
+export const PLCF_BLOCK_SFC = 4;
 
 export function crc16(data: Uint8Array): number {
   let crc = 0xffff;
@@ -72,6 +78,37 @@ export function buildWriteRegFrame(regAddr: number, value: number, index = 0): U
 
 export function buildPlcControlFrame(action: number, index = 0): Uint8Array {
   return buildFrame(COMMAND_PLC_CONTROL, index, new Uint8Array([action]));
+}
+
+export function buildSelectObFrame(slotId: number, index = 0): Uint8Array {
+  return buildFrame(COMMAND_PLC_CONTROL, index, new Uint8Array([PLC_CTRL_SELECT_OB, slotId]));
+}
+
+export function buildMultiBlockDeploySession(
+  blocks: Array<{ binary: Uint8Array; meta: DownloadBlockMeta }>,
+  scanMs = 10,
+  chunkSize = 512
+): FullDeploySession {
+  const allFrames: Uint8Array[] = [];
+  let totalBytes = 0;
+  for (const block of blocks) {
+    const session = buildDownloadSession(block.binary, chunkSize, {
+      ...block.meta,
+      scanMs: block.meta.scanMs ?? scanMs,
+    });
+    allFrames.push(...session.frames);
+    totalBytes += session.totalBytes;
+  }
+  const enableFrames = [
+    buildWriteRegFrame(REG_PLC_MODE_OFFSET, 1),
+    buildWriteRegFrame(REG_PLC_SCAN_MS_OFFSET, scanMs),
+  ];
+  return {
+    frames: allFrames,
+    totalBytes,
+    enableFrames,
+    startFrame: buildPlcControlFrame(PLC_CTRL_START),
+  };
 }
 
 export function buildPlcStatusFrame(index = 0): Uint8Array {
@@ -263,20 +300,50 @@ export interface DownloadSession {
   totalBytes: number;
 }
 
-export function buildDownloadSession(binary: Uint8Array, chunkSize = 512): DownloadSession {
+export interface DownloadBlockMeta {
+  slotId?: number;
+  blockType?: number;
+  name?: string;
+  scanMs?: number;
+}
+
+export function buildDownloadSession(
+  binary: Uint8Array,
+  chunkSize = 512,
+  meta?: DownloadBlockMeta
+): DownloadSession {
   const frames: Uint8Array[] = [];
   const view = new DataView(binary.buffer, binary.byteOffset, binary.byteLength);
   const crc32 = view.getUint32(12, false);
 
-  const beginPayload = new Uint8Array(7);
-  beginPayload[0] = PLC_DL_SUB_BEGIN;
-  beginPayload[1] = (binary.length >> 8) & 0xff;
-  beginPayload[2] = binary.length & 0xff;
-  beginPayload[3] = (crc32 >> 24) & 0xff;
-  beginPayload[4] = (crc32 >> 16) & 0xff;
-  beginPayload[5] = (crc32 >> 8) & 0xff;
-  beginPayload[6] = crc32 & 0xff;
-  frames.push(buildFrame(COMMAND_PLC_DOWNLOAD, 0, beginPayload));
+  if (meta?.slotId !== undefined || meta?.name) {
+    const beginPayload = new Uint8Array(31);
+    beginPayload[0] = PLC_DL_SUB_BEGIN;
+    beginPayload[1] = (binary.length >> 8) & 0xff;
+    beginPayload[2] = binary.length & 0xff;
+    beginPayload[3] = (crc32 >> 24) & 0xff;
+    beginPayload[4] = (crc32 >> 16) & 0xff;
+    beginPayload[5] = (crc32 >> 8) & 0xff;
+    beginPayload[6] = crc32 & 0xff;
+    beginPayload[7] = meta.slotId ?? 0;
+    beginPayload[8] = meta.blockType ?? PLCF_BLOCK_OB;
+    const nameBytes = new TextEncoder().encode(meta.name ?? 'Main [OB1]');
+    beginPayload.set(nameBytes.subarray(0, 20), 9);
+    const scan = meta.scanMs ?? 10;
+    beginPayload[29] = (scan >> 8) & 0xff;
+    beginPayload[30] = scan & 0xff;
+    frames.push(buildFrame(COMMAND_PLC_DOWNLOAD, 0, beginPayload));
+  } else {
+    const beginPayload = new Uint8Array(7);
+    beginPayload[0] = PLC_DL_SUB_BEGIN;
+    beginPayload[1] = (binary.length >> 8) & 0xff;
+    beginPayload[2] = binary.length & 0xff;
+    beginPayload[3] = (crc32 >> 24) & 0xff;
+    beginPayload[4] = (crc32 >> 16) & 0xff;
+    beginPayload[5] = (crc32 >> 8) & 0xff;
+    beginPayload[6] = crc32 & 0xff;
+    frames.push(buildFrame(COMMAND_PLC_DOWNLOAD, 0, beginPayload));
+  }
 
   for (let off = 0; off < binary.length; off += chunkSize) {
     const chunk = binary.subarray(off, Math.min(off + chunkSize, binary.length));

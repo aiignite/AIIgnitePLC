@@ -10,6 +10,7 @@ export const COMMAND_PLC_MONITOR = 0x6d;
 export const PLC_CTRL_START = 0x01;
 export const PLC_CTRL_STOP = 0x02;
 export const PLC_CTRL_RESET = 0x03;
+export const PLC_CTRL_SELECT_OB = 0x04;
 
 export const PLC_ERR_MESSAGES: Record<number, string> = {
   0x0000: 'OK',
@@ -97,6 +98,10 @@ export function parseMonitorResponse(frame: Uint8Array): boolean | null {
 
 export function buildPlcControlFrame(action: number): Uint8Array {
   return buildFrame(COMMAND_PLC_CONTROL, 0, new Uint8Array([action]));
+}
+
+export function buildSelectObFrame(slotId: number): Uint8Array {
+  return buildFrame(COMMAND_PLC_CONTROL, 0, new Uint8Array([PLC_CTRL_SELECT_OB, slotId]));
 }
 
 export function buildPlcStatusFrame(): Uint8Array {

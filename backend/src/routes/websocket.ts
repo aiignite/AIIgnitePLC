@@ -219,6 +219,14 @@ export function websocketRoutes(fastify: FastifyInstance) {
             }
             break;
 
+          case 'load_bytecode':
+            if (message.payload?.binary) {
+              const buf = Buffer.from(message.payload.binary, 'base64');
+              mockPLC.loadBytecode(new Uint8Array(buf));
+              console.log(`📦 Mock PLC 已加载字节码 (${buf.length} bytes)`);
+            }
+            break;
+
           default:
             console.warn(`⚠️ 未知消息: ${message.type}`);
         }

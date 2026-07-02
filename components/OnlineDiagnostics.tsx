@@ -42,6 +42,7 @@ export const OnlineDiagnostics: React.FC = () => {
     eventLog,
     clearEventLog,
     plcStatus,
+    updateRuntimeValues,
   } = useRuntimeStore();
   const { currentProjectId } = useProjectStore();
   const [importHistory, setImportHistory] = useState<any[]>([]);
@@ -97,6 +98,30 @@ export const OnlineDiagnostics: React.FC = () => {
     if (activeView !== 'audit') return;
     void fetchAuditLogs();
   }, [activeView, currentProjectId]);
+
+  useEffect(() => {
+    if (!hwConnected || watchAddresses.length === 0) return;
+    let cancelled = false;
+    const poll = async () => {
+      const { monitorAddress: mon } = useDeployStore.getState();
+      const updates: Array<{ address: string; value: boolean; quality: 'good' | 'bad' }> = [];
+      for (const addr of watchAddresses) {
+        const val = await mon(addr);
+        if (val !== null) {
+          updates.push({ address: addr, value: val, quality: 'good' });
+        }
+      }
+      if (!cancelled && updates.length > 0) {
+        updateRuntimeValues(updates);
+      }
+    };
+    void poll();
+    const timer = setInterval(() => void poll(), 500);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [hwConnected, watchAddresses, updateRuntimeValues]);
 
   // --- Sub-View Components ---
 

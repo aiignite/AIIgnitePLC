@@ -213,6 +213,8 @@ AIIgnitePLC compiles to **AIPLC1/AIPC bytecode** consumed by [seeyaoplcmaster](~
 PCBA uses [USR-K2/K3](https://www.usr.cn/Product/21.html) soldered module. User docs:
 
 - [docs/README.md](docs/README.md) — documentation index
+- [docs/rh850-integration.md](docs/rh850-integration.md) — compile pipeline, LD/ST/SFC IR concat, deploy
+- [docs/slave-io-configuration.md](docs/slave-io-configuration.md) — UART2 slave chain, 0x6F mapping
 - [docs/remote-tcp-deploy.md](docs/remote-tcp-deploy.md) — architecture, WebSocket protocol, workflow
 - [docs/usr-k-pcba-config.md](docs/usr-k-pcba-config.md) — module factory/site configuration
 
@@ -227,6 +229,20 @@ PCBA uses [USR-K2/K3](https://www.usr.cn/Product/21.html) soldered module. User 
 Backend env: `DEVICE_TCP_ENABLED`, `DEVICE_TCP_ALLOWLIST`, `DEVICE_TCP_DEFAULT_PORT`.
 
 Run `./scripts/sync-plc-ir.sh` after changing `plc_ir.h` on the target firmware.
+
+### Program block compile (LD / ST / SFC)
+
+- One **program block** may store `networks`, `st_source`, and `sfc` in `program_blocks.content` JSONB.
+- `POST /api/v1/plc/compile` concatenates IR from each present source into **one** bytecode stream for download.
+- This is **not** multi-block merge; project-level compile only validates LD across blocks.
+- Prefer **one language per block** in production — multiple `SCAN_END` opcodes affect scan semantics (see [docs/rh850-integration.md](docs/rh850-integration.md)).
+
+### Slave I/O (UART2 daisy chain)
+
+- Types: `src/types/rh850Slaves.ts` — BoardID, channels, `DEFAULT_SLAVE_CHAIN` (AD→Relay→Light→Resistor).
+- Config: `hardware_modules.config.slaveChain` via DeviceConfiguration / `SlaveIoMapping`.
+- Deploy 0x6F: DeployPanel or `GET .../hardware/slave-map-hex`.
+- See [docs/slave-io-configuration.md](docs/slave-io-configuration.md).
 
 ## Database Schema Highlights
 
